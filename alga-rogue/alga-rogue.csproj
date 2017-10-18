@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DungeonBuilder.cs" />
     <Compile Include="Models\Chamber.cs" />
     <Compile Include="Models\Dungeon.cs" />
     <Compile Include="Models\Enemy.cs" />

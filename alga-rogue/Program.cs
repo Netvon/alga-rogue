@@ -11,23 +11,23 @@ namespace alga_rogue
     {
         static void Main(string[] args)
         {
-            var dungeon = new Dungeon()
+            var dungeonBuilder = new DungeonBuilder();
+            bool playing = true;
+
+            while(playing) 
             {
-                Start = new Chamber()
-            };
+                Console.WriteLine("Welkom to Alga Rogue");
+                Console.WriteLine("We start bij building an dungeon.");
+                Console.WriteLine("Press any key to go further");
+                Console.ReadKey();
 
-            //dungeon.Start.AddChamber(Direction.Up, new Chamber());
-            Chamber chamber = new Chamber();
-            dungeon.Start.AddChamber(Direction.Right, chamber);
-            Chamber chamber1 = new Chamber();
-            chamber.AddChamber(Direction.Down, chamber1);
-            chamber1.AddChamber(Direction.Left, chamber1);
-            //dungeon.Start.AddChamber(Direction.Right, new Chamber());
-            //dungeon.Start.AddChamber(Direction.Down, new Chamber());
+                var dungeon = dungeonBuilder.CreateDungeon();
+                dungeon.Print();
 
-            dungeon.Print();
+                Console.ReadKey();
+            }
 
-            Console.ReadKey();
+            
         }
     }
 }

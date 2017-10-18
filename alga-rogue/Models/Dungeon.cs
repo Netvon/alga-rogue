@@ -15,24 +15,12 @@ namespace alga_rogue.Models
         public Chamber Start { get; set; }
         public Chamber Exit { get; set; }
 
-        private Chamber TopLeftChamber
+        public Chamber TopLeftChamber { get; set; }
+
+        public Dungeon(int width, int height)
         {
-            get
-            {
-                var current = Start;
-
-                while(current.Up != null)
-                {
-                    current = current.Up;
-                }
-
-                while (current.Left != null)
-                {
-                    current = current.Left;
-                }
-
-                return current;
-            }
+            this.Width = width;
+            this.Height = height;
         }
 
         public void Print()
