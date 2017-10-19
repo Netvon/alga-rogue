@@ -17,7 +17,34 @@ namespace alga_rogue
 
             while (startOfLine != null)
             {
-                
+
+                while (current != null)
+                {
+
+                    Console.Write(" ");
+
+                    if (current.Up?.UpPassable == true)
+                    {
+                        Console.Write("|");
+                    }
+                    else if (current.Up?.UpPassable == false)
+                    {
+                        Console.Write("/");
+                    }
+
+                    Console.Write(" ");
+
+                    if (current.Right == null)
+                    {
+                        current = startOfLine;
+                        break;
+                    }
+
+                    current = current.Right;
+                }
+
+                Console.WriteLine();
+
                 while (current != null)
                 {
                     if(current.Left?.LeftPassable == true)
@@ -47,11 +74,30 @@ namespace alga_rogue
 
                 Console.WriteLine();
 
-                // 1ste lijn met de current.Down
+                while (current != null)
+                {
 
-                Console.WriteLine();
+                    Console.Write(" ");
 
-                // 2de lijn met de current.Up
+                    if (current.Down?.DownPassable == true)
+                    {
+                        Console.Write("|");
+                    }
+                    else if (current.Down?.DownPassable == false)
+                    {
+                        Console.Write("/");
+                    }
+
+                    Console.Write(" ");
+
+                    if (current.Right == null)
+                    {
+                        current = startOfLine;
+                        break;
+                    }
+
+                    current = current.Right;
+                }
 
                 Console.WriteLine();
 
