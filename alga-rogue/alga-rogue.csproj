@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DungeonBuilder.cs" />
+    <Compile Include="DungeonDrawer.cs" />
     <Compile Include="Models\Chamber.cs" />
     <Compile Include="Models\Dungeon.cs" />
     <Compile Include="Models\Enemy.cs" />

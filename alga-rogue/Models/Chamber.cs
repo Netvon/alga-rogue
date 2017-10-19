@@ -11,73 +11,79 @@ namespace alga_rogue.Models
     {
         Dictionary<Direction, Chamber> chamberDictionary;
 
-        //public Chamber Up => chamberDictionary[Direction.Up];
-
+        // Just for testing the dungeon
+        public int xPos, yPos;
+        
         public Chamber Up
         {
             get => chamberDictionary[Direction.Up];
-            set => AddChamber(Direction.Up, value);
+            set => chamberDictionary[Direction.Up] = value;
         }
 
         public Chamber Down
         {
             get => chamberDictionary[Direction.Down];
-            set => AddChamber(Direction.Down, value);
+            set => chamberDictionary[Direction.Down] = value;
         }
 
         public Chamber Left
         {
             get => chamberDictionary[Direction.Left];
-            set => AddChamber(Direction.Left, value);
+            set => chamberDictionary[Direction.Left] = value;
         }
 
         public Chamber Right
         {
             get => chamberDictionary[Direction.Right];
-            set => AddChamber(Direction.Right, value);
+            set => chamberDictionary[Direction.Right] = value;
         }
 
+        public bool UpPassable { get; set; }
+        public bool DownPassable { get; set; }
+        public bool LeftPassable { get; set; }
+        public bool RightPassable { get; set; }
+
         public Enemy Enemy { get; set; }
+
         public bool IsVistited { get; set; }
+        public bool IsStart { get; set; }
+        public bool IsExit { get; set; }
 
         public bool HasEnemy => Enemy != null;
 
-        public Chamber()
+        public Chamber(int xPos, int yPos)
         {
+            this.xPos = xPos;
+            this.yPos = yPos;
+
+            this.IsVistited = false;
+
             chamberDictionary = new Dictionary<Direction, Chamber>();
 
             chamberDictionary.Add(Direction.Up, null);
             chamberDictionary.Add(Direction.Down, null);
             chamberDictionary.Add(Direction.Right, null);
             chamberDictionary.Add(Direction.Left, null);
-        }
 
-        public void AddChamber(Direction direction, Chamber chamber)
-        {
-            chamberDictionary[direction] = chamber;
-
-            if (chamber.GetChamber(direction.Opposite()) == null)
-                chamber.AddChamber(direction.Opposite(), this);
-        }
-
-        private Chamber GetChamber(Direction direction)
-        {
-            return chamberDictionary[direction];
+            this.UpPassable = true;
+            this.DownPassable = true;
+            this.LeftPassable = true;
+            this.RightPassable = true;
         }
 
         public char Print(Dungeon dungeon)
         {
             // ...
-            if(IsVistited == false)
-                return '.';
-
-            if (dungeon.Start == this)
+            if (IsStart)
                 return 'S';
 
-            if (dungeon.Exit == this)
+            if (IsExit)
                 return 'E';
 
-            return 'N';
+            //if (!IsVistited)
+            //    return '.';
+
+            return Convert.ToChar(this.Enemy.Level.ToString());
         }
     }
 }
