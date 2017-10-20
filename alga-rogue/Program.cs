@@ -55,9 +55,32 @@ namespace alga_rogue
 
                 dungeonBuilder.PrepareDungeon(xStart, yStart, xExit, yExit, width, height);
                 var dungeon = dungeonBuilder.CreateDungeon();
-                dungeonDrawer.draw(dungeon);
 
-                Console.ReadKey();
+                dungeon.SetPlayer();
+                dungeon.CheckVisibility();
+
+                while (true)
+                {
+
+                    dungeonDrawer.draw(dungeon);
+
+                    Console.WriteLine("Commands: ");
+                    Console.WriteLine("MoveUp");
+                    Console.WriteLine("MoveDown");
+                    Console.WriteLine("MoveRight");
+                    Console.WriteLine("MoveLeft");
+                    Console.WriteLine("Talisman");
+                    Console.WriteLine("Handgranaat");
+                    Console.WriteLine("Kompas");
+                    Console.WriteLine();
+                    Console.WriteLine("Choose one of the commands.");
+                    string command = Console.ReadLine();
+
+                    dungeon.DoCommand(command);
+
+                }
+
+                //Console.ReadKey();
             }
 
             

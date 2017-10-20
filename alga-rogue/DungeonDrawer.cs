@@ -60,7 +60,13 @@ namespace alga_rogue
                         Console.Write("~");
                     }
 
+                    if (current != null && current == dungeon.Player.Position)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+
                     Console.Write(current.Print(dungeon));
+                    Console.ForegroundColor = ConsoleColor.White;
 
                     if (current.Right?.RightPassable == true)
                     {

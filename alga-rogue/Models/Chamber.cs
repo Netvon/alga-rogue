@@ -45,7 +45,7 @@ namespace alga_rogue.Models
 
         public Enemy Enemy { get; set; }
 
-        public bool IsVistited { get; set; }
+        public bool IsVisible { get; set; }
         public bool IsStart { get; set; }
         public bool IsExit { get; set; }
 
@@ -56,7 +56,7 @@ namespace alga_rogue.Models
             this.xPos = xPos;
             this.yPos = yPos;
 
-            this.IsVistited = false;
+            this.IsVisible = false;
 
             chamberDictionary = new Dictionary<Direction, Chamber>();
 
@@ -77,11 +77,11 @@ namespace alga_rogue.Models
             if (IsStart)
                 return 'S';
 
+            if (!IsVisible)
+                return '.';
+
             if (IsExit)
                 return 'E';
-
-            //if (!IsVistited)
-            //    return '.';
 
             return Convert.ToChar(this.Enemy.Level.ToString());
         }

@@ -10,6 +10,8 @@ namespace alga_rogue.Models
     {
         private Chamber start, exit;
         private Random random;
+        
+        public Player Player { get; set; }
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -112,6 +114,82 @@ namespace alga_rogue.Models
             }
 
             return this;
+        }
+
+        public void SetPlayer()
+        {
+            Player = new Player();
+            Player.Position = this.Start;
+        }
+
+        public void DoCommand(string command)
+        {
+            switch (command)
+            {
+                case "MoveUp":
+                    this.Player.Move(Direction.Up);
+                    this.CheckVisibility();
+                    break;
+                case "MoveDown":
+                    this.Player.Move(Direction.Down);
+                    this.CheckVisibility();
+                    break;
+                case "MoveRight":
+                    this.Player.Move(Direction.Right);
+                    this.CheckVisibility();
+                    break;
+                case "MoveLeft":
+                    this.Player.Move(Direction.Left);
+                    this.CheckVisibility();
+                    break;
+                case "Talisman":
+
+                    break;
+                case "Handgranaat":
+
+                    break;
+                case "Kompas":
+
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void CheckVisibility()
+        {
+            var startOfLine = this.TopLeftChamber;
+            var current = this.TopLeftChamber;
+
+            while (startOfLine != null)
+            {
+                while (current != null)
+                {
+
+                    // Check
+                    if (current.Up == Player.Position)
+                        current.IsVisible = true;
+
+                    if (current.Down == Player.Position)
+                        current.IsVisible = true;
+
+                    if (current.Left == Player.Position)
+                        current.IsVisible = true;
+
+                    if (current.Right == Player.Position)
+                        current.IsVisible = true;
+
+                    current = current.Right;
+                }
+                Console.WriteLine();
+
+                if (startOfLine.Down == null)
+                    break;
+
+                startOfLine = startOfLine.Down;
+                current = startOfLine;
+            }
+
         }
 
     }
