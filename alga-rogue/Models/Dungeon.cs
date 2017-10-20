@@ -144,7 +144,7 @@ namespace alga_rogue.Models
                     break;
                 case "Talisman":
                     int aantalKamers = this.Talisman();
-                    Console.WriteLine("De talisman licht op en fluistert dat de trap omhoog" + aantalKamers + "kamers ver weg is");
+                    Console.WriteLine("De talisman licht op en fluistert dat de trap omhoog " + aantalKamers + " kamers ver weg is");
                     break;
                 case "Handgranaat":
 
@@ -159,8 +159,54 @@ namespace alga_rogue.Models
 
         public int Talisman()
         {
+            Queue<Chamber> q = new Queue<Chamber>();
+            Dictionary<Chamber, Chamber> whoVisitedWho = new Dictionary<Chamber, Chamber>();
+            int stepsFrom = 0;
+
+            q.Enqueue(this.Player.Position);
+            while (q.Count > 0)
+            {
+                Chamber current = q.Dequeue();
+                current.Visited = true;
 
 
+                if (current == this.Exit)
+                {
+                    Chamber stepCounter = current;
+                    while (stepCounter != this.Player.Position)
+                    {
+                        stepCounter = whoVisitedWho[stepCounter];
+                        stepsFrom++;
+                    }
+
+                    return stepsFrom;
+                }
+
+                if (current.Left != null && current.LeftPassable != false && current.Left.Visited != true)
+                {
+                    whoVisitedWho[current.Left] = current;
+                    q.Enqueue(current.Left);
+                }
+
+                if (current.Right != null && current.RightPassable != false && current.Right.Visited != true)
+                {
+                    whoVisitedWho[current.Right] = current;
+                    q.Enqueue(current.Right);
+                }
+
+                if (current.Up != null && current.UpPassable != false && current.Up.Visited != true)
+                {
+                    whoVisitedWho[current.Up] = current;
+                    q.Enqueue(current.Up);
+                }
+
+                if (current.Down != null && current.DownPassable != false && current.Down.Visited != true)
+                {
+                    whoVisitedWho[current.Down] = current;
+                    q.Enqueue(current.Down);
+                }
+               
+            }
 
             return 0;
         }

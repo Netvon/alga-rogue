@@ -78,9 +78,20 @@ namespace alga_rogue
 
                     dungeon.DoCommand(command);
 
+
+                    if (dungeon.Player.Position == dungeon.Exit)
+                    {
+                        break;
+                    }
                 }
 
-                //Console.ReadKey();
+                Console.WriteLine();
+                Console.WriteLine("You found the exit! Good Job!");
+                Console.WriteLine("Wanna try again? Y or N?");
+                string yorN = Console.ReadLine();
+
+                if (yorN.Equals("N"))
+                    break;
             }
 
             

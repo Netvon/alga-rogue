@@ -13,6 +13,8 @@ namespace alga_rogue.Models
 
         // Just for testing the dungeon
         public int xPos, yPos;
+
+        public bool Visited { get; set; }
         
         public Chamber Up
         {
