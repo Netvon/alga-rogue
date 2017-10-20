@@ -143,7 +143,8 @@ namespace alga_rogue.Models
                     this.CheckVisibility();
                     break;
                 case "Talisman":
-
+                    int aantalKamers = this.Talisman();
+                    Console.WriteLine("De talisman licht op en fluistert dat de trap omhoog" + aantalKamers + "kamers ver weg is");
                     break;
                 case "Handgranaat":
 
@@ -154,6 +155,14 @@ namespace alga_rogue.Models
                 default:
                     break;
             }
+        }
+
+        public int Talisman()
+        {
+
+
+
+            return 0;
         }
 
         public void CheckVisibility()
