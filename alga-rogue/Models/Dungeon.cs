@@ -144,21 +144,78 @@ namespace alga_rogue.Models
                     break;
                 case "Talisman":
                     int aantalKamers = this.Talisman();
+                    Console.WriteLine();
                     Console.WriteLine("De talisman licht op en fluistert dat de trap omhoog " + aantalKamers + " kamers ver weg is");
                     break;
                 case "Handgranaat":
-
+                    this.Handgranaat();
+                    Console.WriteLine();
+                    Console.WriteLine("De kerker schudt op zijn grondvesten, alle tegenstanders in de kamer zijn verslagen! Een donderend geluid maakt duidelijk dat gedeeltes van de kerker zijn ingestort...");
                     break;
                 case "Kompas":
 
+                    break;
+                case "Cheat":
+                    this.CheatMode();
+                    Console.WriteLine();
+                    Console.WriteLine("Hidden Command Found");
                     break;
                 default:
                     break;
             }
         }
 
+        public void Handgranaat()
+        {
+            this.NotVisited();
+
+            Queue<Chamber> q = new Queue<Chamber>();
+            Dictionary<Chamber, Chamber> MST = new Dictionary<Chamber, Chamber>();
+
+            q.Enqueue(this.Player.Position);
+            while (q.Count > 0)
+            {
+                Chamber current = q.Dequeue();
+                current.Visited = true;
+
+                if (current == this.Exit)
+                {
+                    this.DestroyChambers(MST);
+                    break;
+                }
+
+                if (current.Left != null && current.LeftPassable != false && current.Left.Visited != true && current.Left.Enemy.Level < current.Down.Enemy.Level && current.Left.Enemy.Level < current.Up.Enemy.Level && current.Left.Enemy.Level < current.Right.Enemy.Level)
+                {
+                    MST[current.Left] = current;
+                    q.Enqueue(current.Left);
+                }
+
+                if (current.Right != null && current.RightPassable != false && current.Right.Visited != true && current.Right.Enemy.Level < current.Down.Enemy.Level && current.Right.Enemy.Level < current.Up.Enemy.Level && current.Right.Enemy.Level < current.Left.Enemy.Level)
+                {
+                    MST[current.Right] = current;
+                    q.Enqueue(current.Right);
+                }
+
+                if (current.Up != null && current.UpPassable != false && current.Up.Visited != true && current.Up.Enemy.Level < current.Down.Enemy.Level && current.Up.Enemy.Level < current.Right.Enemy.Level && current.Up.Enemy.Level < current.Left.Enemy.Level)
+                {
+                    MST[current.Up] = current;
+                    q.Enqueue(current.Up);
+                }
+
+                if (current.Down != null && current.DownPassable != false && current.Down.Visited != true && current.Down.Enemy.Level < current.Up.Enemy.Level && current.Down.Enemy.Level < current.Right.Enemy.Level && current.Down.Enemy.Level < current.Left.Enemy.Level)
+                {
+                    MST[current.Down] = current;
+                    q.Enqueue(current.Down);
+                }
+
+            }
+
+        }
+
         public int Talisman()
         {
+            this.NotVisited();
+
             Queue<Chamber> q = new Queue<Chamber>();
             Dictionary<Chamber, Chamber> whoVisitedWho = new Dictionary<Chamber, Chamber>();
             int stepsFrom = 0;
@@ -211,6 +268,50 @@ namespace alga_rogue.Models
             return 0;
         }
 
+        public void CheatMode()
+        {
+            var startOfLine = this.TopLeftChamber;
+            var current = this.TopLeftChamber;
+
+            while (startOfLine != null)
+            {
+                while (current != null)
+                {
+                    current.IsVisible = true;
+
+                    current = current.Right;
+                }
+
+                if (startOfLine.Down == null)
+                    break;
+
+                startOfLine = startOfLine.Down;
+                current = startOfLine;
+            }
+        }
+        public void NotVisited()
+        {
+            var startOfLine = this.TopLeftChamber;
+            var current = this.TopLeftChamber;
+
+            while (startOfLine != null)
+            {
+                while (current != null)
+                {
+                    current.Visited = false;
+
+                    current = current.Right;
+                }
+
+                if (startOfLine.Down == null)
+                    break;
+
+                startOfLine = startOfLine.Down;
+                current = startOfLine;
+            }
+        }
+
+
         public void CheckVisibility()
         {
             var startOfLine = this.TopLeftChamber;
@@ -236,7 +337,6 @@ namespace alga_rogue.Models
 
                     current = current.Right;
                 }
-                Console.WriteLine();
 
                 if (startOfLine.Down == null)
                     break;
@@ -247,5 +347,47 @@ namespace alga_rogue.Models
 
         }
 
+        public void DestroyChambers(Dictionary<Chamber, Chamber> MST)
+        {
+            int destructions = 0;
+
+            while (destructions < 10)
+            {
+                Random r = new Random();
+                var startOfLine = this.TopLeftChamber;
+                var current = this.TopLeftChamber;
+
+                while (startOfLine != null)
+                {
+                    while (current != null)
+                    {
+
+                        if (current.Right != null && MST[current] != current.Right && MST[current.Right] != current && r.Next(1, 2) == 2)
+                        {    
+                            current.RightPassable = false;
+                            current.Right.LeftPassable = false;
+                            destructions++;
+                        }
+
+                        if (current.Down != null && MST[current] != current.Down && MST[current.Down] != current && r.Next(1, 2) == 2)
+                        {
+                            current.DownPassable = false;
+                            current.Down.UpPassable = false;
+                            destructions++;
+                        }
+
+                        current = current.Right;
+                    }
+
+                    if (startOfLine.Down == null)
+                        break;
+
+                    startOfLine = startOfLine.Down;
+                    current = startOfLine;
+                }
+
+                break;
+            }
+        }
     }
 }
