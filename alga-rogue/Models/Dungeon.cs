@@ -233,22 +233,27 @@ namespace alga_rogue.Models
 
         public int Talisman()
         {
-            this.NotVisited();
+            int steps = 0;
 
-            Queue<Chamber> q = new Queue<Chamber>();
-            Dictionary<Chamber, Chamber> whoVisitedWho = new Dictionary<Chamber, Chamber>();
-            int stepsFrom = 0;
+            //NotVisited();
 
-            q.Enqueue(this.Player.Position);
-            while (q.Count > 0)
+            var visitedInSearch = new List<Chamber>();
+
+            var queue           = new Queue<Chamber>();
+            var whoVisitedWho   = new Dictionary<Chamber, Chamber>();
+            int stepsFrom       = 0;
+
+            queue.Enqueue(Player.Position);
+
+            while (queue.Count > 0)
             {
-                Chamber current = q.Dequeue();
-                current.Visited = true;
+                steps++;
+                var currentChamber = queue.Dequeue();
+                SetVisitedInSearch(currentChamber);
 
-
-                if (current == this.Exit)
+                if (currentChamber == this.Exit)
                 {
-                    Chamber stepCounter = current;
+                    Chamber stepCounter = currentChamber;
                     while (stepCounter != this.Player.Position)
                     {
                         stepCounter = whoVisitedWho[stepCounter];
@@ -258,33 +263,46 @@ namespace alga_rogue.Models
                     return stepsFrom;
                 }
 
-                if (current.Left != null && current.LeftPassable != false && current.Left.Visited != true)
+                if (currentChamber.Left != null && currentChamber.LeftPassable && WasNotVisitedInSearch(currentChamber.Left))
                 {
-                    whoVisitedWho[current.Left] = current;
-                    q.Enqueue(current.Left);
+                    whoVisitedWho[currentChamber.Left] = currentChamber;
+                    queue.Enqueue(currentChamber.Left);
                 }
 
-                if (current.Right != null && current.RightPassable != false && current.Right.Visited != true)
+                if (currentChamber.Right != null && currentChamber.RightPassable && WasNotVisitedInSearch(currentChamber.Right))
                 {
-                    whoVisitedWho[current.Right] = current;
-                    q.Enqueue(current.Right);
+                    whoVisitedWho[currentChamber.Right] = currentChamber;
+                    queue.Enqueue(currentChamber.Right);
                 }
 
-                if (current.Up != null && current.UpPassable != false && current.Up.Visited != true)
+                if (currentChamber.Up != null && currentChamber.UpPassable && WasNotVisitedInSearch(currentChamber.Up))
                 {
-                    whoVisitedWho[current.Up] = current;
-                    q.Enqueue(current.Up);
+                    whoVisitedWho[currentChamber.Up] = currentChamber;
+                    queue.Enqueue(currentChamber.Up);
                 }
 
-                if (current.Down != null && current.DownPassable != false && current.Down.Visited != true)
+                if (currentChamber.Down != null && currentChamber.DownPassable && WasNotVisitedInSearch(currentChamber.Down))
                 {
-                    whoVisitedWho[current.Down] = current;
-                    q.Enqueue(current.Down);
+                    whoVisitedWho[currentChamber.Down] = currentChamber;
+                    queue.Enqueue(currentChamber.Down);
                 }
-               
+
             }
 
+            queue.Clear();
+            whoVisitedWho.Clear();
+
             return 0;
+
+            void SetVisitedInSearch(Chamber chamber)
+            {
+                visitedInSearch.Add(chamber);
+            }
+
+            bool WasNotVisitedInSearch(Chamber chamber)
+            {
+                return !visitedInSearch.Contains(chamber);
+            }
         }
 
         public void CheatMode()
@@ -308,6 +326,7 @@ namespace alga_rogue.Models
                 current = startOfLine;
             }
         }
+
         public void NotVisited()
         {
             ForEach(chamber => chamber.Visited = false);
