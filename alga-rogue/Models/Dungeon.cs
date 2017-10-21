@@ -8,13 +8,13 @@ namespace alga_rogue.Models
 {
     class Dungeon
     {
-        private Chamber start, exit;
-        private Random random;
-        
-        public Player Player { get; set; }
+        Chamber start, exit;
+        Random random;
 
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public Player Player { get; private set; }
+
+        public int Width { get; }
+        public int Height { get; }
 
         public Chamber Start {
             get => start;
@@ -29,6 +29,7 @@ namespace alga_rogue.Models
                 start.IsStart = true;
             }
         }
+
         public Chamber Exit {
             get => exit;
             set
@@ -56,8 +57,8 @@ namespace alga_rogue.Models
         public Chamber FindChamber(int x, int y)
         {
             // Omdat het 
-            x = x - 1;
-            y = y - 1;
+            x--;
+            y--;
 
             var startOfLine = this.TopLeftChamber;
             var current = this.TopLeftChamber;
@@ -66,7 +67,7 @@ namespace alga_rogue.Models
             {
                 while (current != null)
                 {
-                    if (current.xPos == x && current.yPos == y)
+                    if (current.XPos == x && current.YPos == y)
                         return current;
 
                     if (current.Right == null)
@@ -144,13 +145,11 @@ namespace alga_rogue.Models
                     break;
                 case "Talisman":
                     int aantalKamers = this.Talisman();
-                    Console.WriteLine();
-                    Console.WriteLine("De talisman licht op en fluistert dat de trap omhoog " + aantalKamers + " kamers ver weg is");
+                    Console.WriteLine($"{Environment.NewLine}De talisman licht op en fluistert dat de trap omhoog {aantalKamers} kamers ver weg is");
                     break;
                 case "Handgranaat":
                     this.Handgranaat();
-                    Console.WriteLine();
-                    Console.WriteLine("De kerker schudt op zijn grondvesten, alle tegenstanders in de kamer zijn verslagen! Een donderend geluid maakt duidelijk dat gedeeltes van de kerker zijn ingestort...");
+                    Console.WriteLine($"{Environment.NewLine}De kerker schudt op zijn grondvesten, alle tegenstanders in de kamer zijn verslagen! Een donderend geluid maakt duidelijk dat gedeeltes van de kerker zijn ingestort...");
                     break;
                 case "Kompas":
 
@@ -169,8 +168,8 @@ namespace alga_rogue.Models
         {
             this.NotVisited();
 
-            Queue<Chamber> q = new Queue<Chamber>();
-            Dictionary<Chamber, Chamber> MST = new Dictionary<Chamber, Chamber>();
+            var q   = new Queue<Chamber>();
+            var MST = new Dictionary<Chamber, Chamber>();
 
             q.Enqueue(this.Player.Position);
             while (q.Count > 0)
@@ -184,25 +183,45 @@ namespace alga_rogue.Models
                     break;
                 }
 
-                if (current.Left != null && current.LeftPassable != false && current.Left.Visited != true && current.Left.Enemy.Level < current.Down.Enemy.Level && current.Left.Enemy.Level < current.Up.Enemy.Level && current.Left.Enemy.Level < current.Right.Enemy.Level)
+                if (current.Left != null
+                    && current.LeftPassable
+                    && !current.Left.Visited
+                    && current.Left.Enemy.Level < current.Down.Enemy.Level
+                    && current.Left.Enemy.Level < current.Up.Enemy.Level
+                    && current.Left.Enemy.Level < current.Right.Enemy.Level)
                 {
                     MST[current.Left] = current;
                     q.Enqueue(current.Left);
                 }
 
-                if (current.Right != null && current.RightPassable != false && current.Right.Visited != true && current.Right.Enemy.Level < current.Down.Enemy.Level && current.Right.Enemy.Level < current.Up.Enemy.Level && current.Right.Enemy.Level < current.Left.Enemy.Level)
+                if (current.Right != null
+                    && current.RightPassable
+                    && !current.Right.Visited
+                    && current.Right.Enemy.Level < current.Down.Enemy.Level
+                    && current.Right.Enemy.Level < current.Up.Enemy.Level
+                    && current.Right.Enemy.Level < current.Left.Enemy.Level)
                 {
                     MST[current.Right] = current;
                     q.Enqueue(current.Right);
                 }
 
-                if (current.Up != null && current.UpPassable != false && current.Up.Visited != true && current.Up.Enemy.Level < current.Down.Enemy.Level && current.Up.Enemy.Level < current.Right.Enemy.Level && current.Up.Enemy.Level < current.Left.Enemy.Level)
+                if (current.Up != null
+                    && current.UpPassable
+                    && !current.Up.Visited
+                    && current.Up.Enemy.Level < current.Down.Enemy.Level
+                    && current.Up.Enemy.Level < current.Right.Enemy.Level
+                    && current.Up.Enemy.Level < current.Left.Enemy.Level)
                 {
                     MST[current.Up] = current;
                     q.Enqueue(current.Up);
                 }
 
-                if (current.Down != null && current.DownPassable != false && current.Down.Visited != true && current.Down.Enemy.Level < current.Up.Enemy.Level && current.Down.Enemy.Level < current.Right.Enemy.Level && current.Down.Enemy.Level < current.Left.Enemy.Level)
+                if (current.Down != null
+                    && current.DownPassable
+                    && !current.Down.Visited
+                    && current.Down.Enemy.Level < current.Up.Enemy.Level
+                    && current.Down.Enemy.Level < current.Right.Enemy.Level
+                    && current.Down.Enemy.Level < current.Left.Enemy.Level)
                 {
                     MST[current.Down] = current;
                     q.Enqueue(current.Down);
@@ -291,14 +310,19 @@ namespace alga_rogue.Models
         }
         public void NotVisited()
         {
-            var startOfLine = this.TopLeftChamber;
-            var current = this.TopLeftChamber;
+            ForEach(chamber => chamber.Visited = false);
+        }
+
+        void ForEach(Action<Chamber> hallo)
+        {
+            var startOfLine = TopLeftChamber;
+            var current = TopLeftChamber;
 
             while (startOfLine != null)
             {
                 while (current != null)
                 {
-                    current.Visited = false;
+                    hallo(current);
 
                     current = current.Right;
                 }
@@ -311,80 +335,51 @@ namespace alga_rogue.Models
             }
         }
 
-
         public void CheckVisibility()
         {
-            var startOfLine = this.TopLeftChamber;
-            var current = this.TopLeftChamber;
-
-            while (startOfLine != null)
+            ForEach(chamber =>
             {
-                while (current != null)
-                {
+                if (chamber.Up == Player.Position)
+                    chamber.IsVisible = true;
 
-                    // Check
-                    if (current.Up == Player.Position)
-                        current.IsVisible = true;
+                if (chamber.Down == Player.Position)
+                    chamber.IsVisible = true;
 
-                    if (current.Down == Player.Position)
-                        current.IsVisible = true;
+                if (chamber.Left == Player.Position)
+                    chamber.IsVisible = true;
 
-                    if (current.Left == Player.Position)
-                        current.IsVisible = true;
-
-                    if (current.Right == Player.Position)
-                        current.IsVisible = true;
-
-                    current = current.Right;
-                }
-
-                if (startOfLine.Down == null)
-                    break;
-
-                startOfLine = startOfLine.Down;
-                current = startOfLine;
-            }
-
+                if (chamber.Right == Player.Position)
+                    chamber.IsVisible = true;
+            });
         }
 
         public void DestroyChambers(Dictionary<Chamber, Chamber> MST)
         {
             int destructions = 0;
+            Random r = new Random();
 
             while (destructions < 10)
             {
-                Random r = new Random();
-                var startOfLine = this.TopLeftChamber;
-                var current = this.TopLeftChamber;
-
-                while (startOfLine != null)
+                ForEach(chamber =>
                 {
-                    while (current != null)
+                    Chamber chamber1 = MST[chamber];
+                    Chamber right = MST[chamber.Right];
+                    Chamber down = MST[chamber.Down];
+
+                    if (chamber.Right != null && chamber1 != chamber.Right && right != chamber && r.Next(1, 2) == 2)
                     {
-
-                        if (current.Right != null && MST[current] != current.Right && MST[current.Right] != current && r.Next(1, 2) == 2)
-                        {    
-                            current.RightPassable = false;
-                            current.Right.LeftPassable = false;
-                            destructions++;
-                        }
-
-                        if (current.Down != null && MST[current] != current.Down && MST[current.Down] != current && r.Next(1, 2) == 2)
-                        {
-                            current.DownPassable = false;
-                            current.Down.UpPassable = false;
-                            destructions++;
-                        }
-
-                        current = current.Right;
+                        chamber.RightPassable = false;
+                        chamber.Right.LeftPassable = false;
+                        destructions++;
                     }
-
-                    if (startOfLine.Down == null)
-                        break;
-
-                    startOfLine = startOfLine.Down;
-                    current = startOfLine;
-                }
+                    
+                    if (chamber.Down != null && chamber1 != chamber.Down && down != chamber && r.Next(1, 2) == 2)
+                    {
+                        chamber.DownPassable = false;
+                        chamber.Down.UpPassable = false;
+                        destructions++;
+                    }
+                });
 
                 break;
             }

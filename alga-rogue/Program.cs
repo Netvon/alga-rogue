@@ -9,49 +9,67 @@ namespace alga_rogue
 {
     class Program
     {
+        static int AskForNumber(string question, int min = int.MinValue, int max = int.MaxValue)
+        {
+            var result = 0;
+            var isValid = false;
+
+            while (!isValid)
+            {
+                Ask();
+                isValid = int.TryParse(Console.ReadLine(), out result);
+
+                if (result < min || result > max)
+                    isValid = false;
+
+                if (!isValid)
+                    NotifyOfError();
+            }
+
+            return result;
+
+            void Ask()
+            {
+                Console.BackgroundColor = ConsoleColor.Cyan;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.WriteLine($"\n   {question}   ");
+                Console.ResetColor();
+
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("=> ");
+                Console.ResetColor();
+            }
+
+            void NotifyOfError()
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("~ ~ ~ Please enter a valid number ~ ~ ~");
+                Console.ResetColor();
+            }
+        }
+
         static void Main(string[] args)
         {
             var dungeonBuilder = new DungeonBuilder();
             var dungeonDrawer = new DungeonDrawer();
-            bool playing = true;
+            var playing = true;
 
-            while(playing) 
+            while(playing)
             {
-                Console.WriteLine("Welkom to Alga Rogue");
-                Console.WriteLine("We start bij building an dungeon.");
-                Console.WriteLine("Press any key to go further");
+                Console.WriteLine("Welcome to Alga Rogue");
+                Console.WriteLine("We start by building a dungeon.");
+                Console.WriteLine("Press any key to go continue...");
                 Console.ReadKey();
-                Console.WriteLine("");
 
-                Console.WriteLine("Please insert the dungeon width");
-                int width = Convert.ToInt32(Console.ReadLine());
+                var width  = AskForNumber("Please insert the dungeon width");
+                var height = AskForNumber("Please insert the dungeon height");
+                var xStart = AskForNumber("Please insert the 'x' position of the Start", min: 0, max: width);
+                var yStart = AskForNumber("Please insert the 'y' position of the Start", min: 0, max: height);
 
-                Console.WriteLine("");
+                var xExit  = AskForNumber("Please insert the 'x' position of the Exit", min: 0, max: width);
+                var yExit  = AskForNumber("Please insert the 'y' position of the Exit", min: 0, max: height);
 
-                Console.WriteLine("Please insert the dungeon height");
-                int height = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("");
-
-                Console.WriteLine("Please insert the x position of the Start");
-                int xStart = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("");
-
-                Console.WriteLine("Please insert the y position of the Start");
-                int yStart = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("");
-
-                Console.WriteLine("Please insert the x position of the Exit");
-                int xExit = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("");
-
-                Console.WriteLine("Please insert the y position of the Exit");
-                int yExit = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("");
+                Console.WriteLine();
 
                 dungeonBuilder.PrepareDungeon(xStart, yStart, xExit, yExit, width, height);
                 var dungeon = dungeonBuilder.CreateDungeon();
@@ -61,8 +79,7 @@ namespace alga_rogue
 
                 while (true)
                 {
-
-                    dungeonDrawer.draw(dungeon);
+                    dungeonDrawer.Draw(dungeon);
 
                     Console.WriteLine("Commands: ");
                     Console.WriteLine("MoveUp");
@@ -78,11 +95,11 @@ namespace alga_rogue
 
                     dungeon.DoCommand(command);
 
-
                     if (dungeon.Player.Position == dungeon.Exit)
                     {
                         break;
                     }
+
                 }
 
                 Console.WriteLine();
@@ -93,7 +110,6 @@ namespace alga_rogue
                 if (yorN.Equals("N"))
                     break;
             }
-
             
         }
     }

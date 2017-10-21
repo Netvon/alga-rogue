@@ -9,13 +9,14 @@ namespace alga_rogue.Models
 {
     class Chamber
     {
-        Dictionary<Direction, Chamber> chamberDictionary;
+        readonly Dictionary<Direction, Chamber> chamberDictionary;
 
         // Just for testing the dungeon
-        public int xPos, yPos;
+        public int XPos { get; }
+        public int YPos { get; }
 
         public bool Visited { get; set; }
-        
+
         public Chamber Up
         {
             get => chamberDictionary[Direction.Up];
@@ -51,29 +52,29 @@ namespace alga_rogue.Models
         public bool IsStart { get; set; }
         public bool IsExit { get; set; }
 
-        public bool HasEnemy => Enemy != null;
 
         public Chamber(int xPos, int yPos)
         {
-            this.xPos = xPos;
-            this.yPos = yPos;
+            XPos = xPos;
+            YPos = yPos;
 
-            this.IsVisible = false;
+            IsVisible = false;
 
-            chamberDictionary = new Dictionary<Direction, Chamber>();
+            chamberDictionary = new Dictionary<Direction, Chamber>
+            {
+                { Direction.Up, null },
+                { Direction.Down, null },
+                { Direction.Right, null },
+                { Direction.Left, null }
+            };
 
-            chamberDictionary.Add(Direction.Up, null);
-            chamberDictionary.Add(Direction.Down, null);
-            chamberDictionary.Add(Direction.Right, null);
-            chamberDictionary.Add(Direction.Left, null);
-
-            this.UpPassable = true;
-            this.DownPassable = true;
-            this.LeftPassable = true;
-            this.RightPassable = true;
+            UpPassable = true;
+            DownPassable = true;
+            LeftPassable = true;
+            RightPassable = true;
         }
 
-        public char Print(Dungeon dungeon)
+        public char Print()
         {
             // ...
             if (IsStart)
@@ -85,7 +86,7 @@ namespace alga_rogue.Models
             if (IsExit)
                 return 'E';
 
-            return Convert.ToChar(this.Enemy.Level.ToString());
+            return Convert.ToChar(Enemy.Level.ToString());
         }
     }
 }

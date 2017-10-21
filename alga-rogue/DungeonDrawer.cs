@@ -9,22 +9,20 @@ namespace alga_rogue
 {
     class DungeonDrawer
     {
-
-        public void draw(Dungeon dungeon)
+        public void Draw(Dungeon dungeon)
         {
             var startOfLine = dungeon.TopLeftChamber;
             var current = dungeon.TopLeftChamber;
 
             while (startOfLine != null)
             {
-
                 while (current != null)
                 {
                     if(current.Left != null)
                     {
                         Console.Write(" ");
                     }
-                    
+
                     if (current.Up?.UpPassable == true)
                     {
                         Console.Write("|");
@@ -60,7 +58,7 @@ namespace alga_rogue
                         Console.Write("~");
                     }
 
-                    if (current != null && current.Visited)
+                    if (current?.Visited == true)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
                     }
@@ -70,7 +68,7 @@ namespace alga_rogue
                         Console.ForegroundColor = ConsoleColor.Blue;
                     }
 
-                    Console.Write(current.Print(dungeon));
+                    Console.Write(current.Print());
                     Console.ForegroundColor = ConsoleColor.White;
 
                     if (current.Right?.RightPassable == true)
@@ -84,7 +82,7 @@ namespace alga_rogue
 
                     if (current.Right == null)
                     {
-                        current = startOfLine; 
+                        current = startOfLine;
                         break;
                     }
 
@@ -100,7 +98,7 @@ namespace alga_rogue
                     {
                         Console.Write(" ");
                     }
-                    
+
                     if (current.Down?.DownPassable == true)
                     {
                         Console.Write("|");
@@ -132,8 +130,6 @@ namespace alga_rogue
                 startOfLine = startOfLine.Down;
                 current = startOfLine;
             }
-           
         }
-
     }
 }
