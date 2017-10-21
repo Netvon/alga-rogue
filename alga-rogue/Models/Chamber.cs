@@ -12,6 +12,7 @@ namespace alga_rogue.Models
         public Guid Id { get; } = Guid.NewGuid();
 
         readonly Dictionary<Direction, Chamber> chamberDictionary;
+        readonly Dictionary<Direction, bool> chamberPassible;
 
         // Just for testing the dungeon
         public int XPos { get; }
@@ -43,10 +44,54 @@ namespace alga_rogue.Models
             set => chamberDictionary[Direction.Right] = value;
         }
 
-        public bool UpPassable { get; set; }
-        public bool DownPassable { get; set; }
-        public bool LeftPassable { get; set; }
-        public bool RightPassable { get; set; }
+        public Chamber this[Direction direction] => chamberDictionary[direction];
+
+        public bool IsPassable(Direction direction)
+        {
+            return chamberPassible[direction];
+        }
+
+        public void SetPassable(Direction direction, bool isPassable)
+        {
+            chamberPassible[direction] = isPassable;
+        }
+
+        public bool UpPassable
+        {
+            get => chamberPassible[Direction.Up];
+            set => chamberPassible[Direction.Up] = value;
+        }
+
+        public bool DownPassable
+        {
+            get => chamberPassible[Direction.Down];
+            set => chamberPassible[Direction.Down] = value;
+        }
+
+        public bool LeftPassable
+        {
+            get => chamberPassible[Direction.Left];
+            set => chamberPassible[Direction.Left] = value;
+        }
+
+        public bool RightPassable
+        {
+            get => chamberPassible[Direction.Right];
+            set => chamberPassible[Direction.Right] = value;
+        }
+
+        public uint? LeftWeight => Left?.Enemy.Level;
+        public uint? RightWeight => Right?.Enemy.Level;
+        public uint? UpWeight => Up?.Enemy.Level;
+        public uint? DownWeight => Down?.Enemy.Level;
+
+        public (uint? weigth, bool passable, Chamber chamber, Direction direction) GetDirectionInfo(Direction direction)
+        {
+            return
+            (
+                this[direction]?.Enemy.Level, IsPassable(direction), this[direction], direction
+            );
+        }
 
         public Enemy Enemy { get; set; }
 
@@ -69,25 +114,27 @@ namespace alga_rogue.Models
                 { Direction.Left, null }
             };
 
+            chamberPassible = new Dictionary<Direction, bool>();
+
             UpPassable = true;
             DownPassable = true;
             LeftPassable = true;
             RightPassable = true;
         }
 
-        public char Print()
+        public string Print()
         {
             // ...
             if (IsStart)
-                return 'S';
+                return "S";
 
             if (!IsVisible)
-                return '.';
+                return ".";
 
             if (IsExit)
-                return 'E';
+                return "E";
 
-            return Convert.ToChar(Enemy.Level.ToString());
+            return Enemy.Level.ToString();
         }
 
         // override object.Equals
@@ -105,6 +152,11 @@ namespace alga_rogue.Models
         public override int GetHashCode()
         {
             return Id.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Id.ToString();
         }
     }
 }

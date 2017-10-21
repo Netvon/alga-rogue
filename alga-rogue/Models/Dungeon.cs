@@ -1,4 +1,5 @@
-﻿using System;
+﻿using alga_rogue.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -166,67 +167,260 @@ namespace alga_rogue.Models
 
         public void Handgranaat()
         {
-            this.NotVisited();
+            NotVisited();
 
-            var q   = new Queue<Chamber>();
-            var MST = new Dictionary<Chamber, Chamber>();
+            Func<Chamber, (uint? weigth, bool passable, Chamber chamber, Direction direction)[]> getDirectionInfo = (Chamber c) => new[] {
+                c.GetDirectionInfo(Direction.Up),
+                c.GetDirectionInfo(Direction.Down),
+                c.GetDirectionInfo(Direction.Left),
+                c.GetDirectionInfo(Direction.Right),
+            };
 
-            q.Enqueue(this.Player.Position);
-            while (q.Count > 0)
+            var startLookup = getDirectionInfo(Exit);
+
+            var previouslyVisited = new HashSet<Chamber>();
+            var connections = new Dictionary<Chamber, HashSet<(uint? weigth, bool passable, Chamber chamber, Direction direction)>>();
+
+            while (true)
             {
-                Chamber current = q.Dequeue();
-                current.WasVisitedForSearch = true;
 
-                if (current == this.Exit)
+                var prev = previouslyVisited.Select(c => getDirectionInfo(c))
+                          .SelectMany(x => x)
+                          .Where(x => x.chamber != null)
+                          .Where(x => !previouslyVisited.Contains(x.chamber[x.direction]));
+
+                var h = prev.Union(startLookup);
+
+                var h2 = h.Where(to => to.chamber != null)
+                          .Where(to => !previouslyVisited.Contains(to.chamber))
+                          .OrderBy(x => x.weigth);
+
+                if (h2.Any())
                 {
-                    this.DestroyChambers(MST);
+                    var to = h2.First();
+                    var from = to.chamber[to.direction.Opposite()];
+
+                    if(connections.ContainsKey(from))
+                    {
+                        connections[from].Add(to);
+                    } else
+                    {
+                        var toList = new HashSet<(uint? weigth, bool passable, Chamber chamber, Direction direction)>() { to };
+                        connections.Add(from, toList);
+                    }
+
+                    previouslyVisited.Add(from);
+                    previouslyVisited.Add(to.chamber);
+
+                    to.chamber.WasVisitedForSearch = true;
+                    from.WasVisitedForSearch = true;
+
+                    if (to.chamber == Exit)
+                        break;
+                } else
+                {
                     break;
                 }
-
-                if (current.Left != null
-                    && current.LeftPassable
-                    && !current.Left.WasVisitedForSearch
-                    && current.Left.Enemy.Level < current.Down.Enemy.Level
-                    && current.Left.Enemy.Level < current.Up.Enemy.Level
-                    && current.Left.Enemy.Level < current.Right.Enemy.Level)
-                {
-                    MST[current.Left] = current;
-                    q.Enqueue(current.Left);
-                }
-
-                if (current.Right != null
-                    && current.RightPassable
-                    && !current.Right.WasVisitedForSearch
-                    && current.Right.Enemy.Level < current.Down.Enemy.Level
-                    && current.Right.Enemy.Level < current.Up.Enemy.Level
-                    && current.Right.Enemy.Level < current.Left.Enemy.Level)
-                {
-                    MST[current.Right] = current;
-                    q.Enqueue(current.Right);
-                }
-
-                if (current.Up != null
-                    && current.UpPassable
-                    && !current.Up.WasVisitedForSearch
-                    && current.Up.Enemy.Level < current.Down.Enemy.Level
-                    && current.Up.Enemy.Level < current.Right.Enemy.Level
-                    && current.Up.Enemy.Level < current.Left.Enemy.Level)
-                {
-                    MST[current.Up] = current;
-                    q.Enqueue(current.Up);
-                }
-
-                if (current.Down != null
-                    && current.DownPassable
-                    && !current.Down.WasVisitedForSearch
-                    && current.Down.Enemy.Level < current.Up.Enemy.Level
-                    && current.Down.Enemy.Level < current.Right.Enemy.Level
-                    && current.Down.Enemy.Level < current.Left.Enemy.Level)
-                {
-                    MST[current.Down] = current;
-                    q.Enqueue(current.Down);
-                }
+               
             }
+
+            var destoryCount = 0;
+
+            ForEach(chamber =>
+            {
+                if (destoryCount > 10)
+                    return;
+
+                var randomDirection = (Direction)random.Next(0, 4);
+
+                if(!ExistsInMST(chamber))
+                {
+                    chamber.SetPassable(randomDirection, false);
+                    chamber[randomDirection]?.SetPassable(randomDirection.Opposite(), false);
+
+                    destoryCount++;
+                }
+            });
+
+            bool ExistsInMST(Chamber chamber)
+            {
+                if (connections.ContainsKey(chamber))
+                    return true;
+
+                foreach (var connection in connections)
+                {
+                    if (connection.Value.Any(x => x.chamber == chamber))
+                        return true;
+                }
+
+                return false;
+            }
+
+            //var visitedInSearch = new List<Chamber>();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
+            //var q   = new Queue<Chamber>();
+            //var MST = new Dictionary<Chamber, Chamber>();
+
+            //q.Enqueue(Player.Position);
+            //SetVisitedInSearch(Player.Position);
+
+            //while (q.Count > 0)
+            //{
+            //    Chamber current = q.Dequeue();
+
+            //    if (current == Exit)
+            //    {
+            //        DestroyChambers(MST);
+            //        return;
+            //    }
+
+            //    ProcessChamber(current, Direction.Left);
+            //    ProcessChamber(current, Direction.Right);
+            //    ProcessChamber(current, Direction.Up);
+            //    ProcessChamber(current, Direction.Down);
+
+            //    //var testsLeft = new[] {
+            //    //    current.Left?.Enemy.Level < current.Up?.Enemy.Level,
+            //    //    current.Left?.Enemy.Level < current.Down?.Enemy.Level,
+            //    //    current.Left?.Enemy.Level < current.Right?.Enemy.Level
+            //    //};
+
+            //    //var testsRight = new[] {
+            //    //    current.Right?.Enemy.Level < current.Up?.Enemy.Level,
+            //    //    current.Right?.Enemy.Level < current.Down?.Enemy.Level,
+            //    //    current.Right?.Enemy.Level < current.Left?.Enemy.Level
+            //    //};
+
+            //    //var testsUp = new[] {
+            //    //    current.Up?.Enemy.Level < current.Down?.Enemy.Level,
+            //    //    current.Up?.Enemy.Level < current.Right?.Enemy.Level,
+            //    //    current.Up?.Enemy.Level < current.Left?.Enemy.Level
+            //    //};
+
+            //    //var testsDown = new[] {
+            //    //    current.Down?.Enemy.Level < current.Up?.Enemy.Level,
+            //    //    current.Down?.Enemy.Level < current.Right?.Enemy.Level,
+            //    //    current.Down?.Enemy.Level < current.Left?.Enemy.Level
+            //    //};
+
+            //    //if (current.Left != null
+            //    //    && current.LeftPassable
+            //    //    && WasNotVisitedInSearch(current.Left)
+            //    //    && current.Left.Enemy.Level < current.Down?.Enemy.Level
+            //    //    && current.Left.Enemy.Level < current.Up?.Enemy.Level
+            //    //    && current.Left.Enemy.Level < current.Right?.Enemy.Level)
+            //    //{
+            //    //    MST[current.Left] = current;
+            //    //    q.Enqueue(current.Left);
+
+            //    //    SetVisitedInSearch(current.Left);
+            //    //}
+
+            //    //if (current.Right != null
+            //    //    && current.RightPassable
+            //    //    && WasNotVisitedInSearch(current.Right)
+            //    //    && current.Right.Enemy.Level < current.Down?.Enemy.Level
+            //    //    && current.Right.Enemy.Level < current.Up?.Enemy.Level
+            //    //    && current.Right.Enemy.Level < current.Left?.Enemy.Level)
+            //    //{
+            //    //    MST[current.Right] = current;
+            //    //    q.Enqueue(current.Right);
+
+            //    //    SetVisitedInSearch(current.Right);
+            //    //}
+
+            //    //if (current.Up != null
+            //    //    && current.UpPassable
+            //    //    && WasNotVisitedInSearch(current.Up)
+            //    //    && current.Up.Enemy.Level < current.Down?.Enemy.Level
+            //    //    && current.Up.Enemy.Level < current.Right?.Enemy.Level
+            //    //    && current.Up.Enemy.Level < current.Left?.Enemy.Level)
+            //    //{
+            //    //    MST[current.Up] = current;
+            //    //    q.Enqueue(current.Up);
+
+            //    //    SetVisitedInSearch(current.Up);
+            //    //}
+
+            //    //if (current.Down != null
+            //    //    && current.DownPassable
+            //    //    && WasNotVisitedInSearch(current.Down)
+            //    //    && current.Down.Enemy.Level < current.Up?.Enemy.Level
+            //    //    && current.Down.Enemy.Level < current.Right?.Enemy.Level
+            //    //    && current.Down.Enemy.Level < current.Left?.Enemy.Level)
+            //    //{
+            //    //    MST[current.Down] = current;
+            //    //    q.Enqueue(current.Down);
+
+            //    //    SetVisitedInSearch(current.Down);
+            //    //}
+            //}
+
+            //void ProcessChamber(Chamber chamber, Direction direction)
+            //{
+            //    if (chamber[direction] == null)
+            //        return;
+
+            //    if (!chamber.IsPassable(direction))
+            //        return;
+
+            //    if (!WasNotVisitedInSearch(chamber[direction]))
+            //        return;
+
+            //    var otherDirections = direction.Others();
+            //    var selected = otherDirections
+            //        .Select(dir => new { Chamber = chamber[dir], Level = chamber[dir]?.Enemy.Level })
+            //        .Where(x => x.Chamber != null)
+            //        .OrderBy(x => x.Level)
+            //        .FirstOrDefault();
+
+
+            //    if(selected != null)
+            //    //if (chamber.IsPassable(direction)
+            //    //    && WasNotVisitedInSearch(chamber[direction])
+            //    //    && allDirections)
+            //    {
+            //        MST[chamber[direction]] = selected.Chamber;
+            //        q.Enqueue(chamber[direction]);
+
+            //        SetVisitedInSearch(chamber[direction]);
+            //    }
+            //}
+
+            //void SetVisitedInSearch(Chamber chamber)
+            //{
+            //    chamber.WasVisitedForSearch = true;
+            //    visitedInSearch.Add(chamber);
+            //}
+
+            //bool WasNotVisitedInSearch(Chamber chamber)
+            //{
+            //    return !visitedInSearch.Contains(chamber);
+            //}
         }
 
         public (int stepsFrom, int itterations) Talisman()
@@ -295,6 +489,7 @@ namespace alga_rogue.Models
             }
 
             return (0, itterations);
+            
 
             void SetVisitedInSearch(Chamber chamber)
             {

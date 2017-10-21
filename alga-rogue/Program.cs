@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using alga_rogue.Util;
+
 namespace alga_rogue
 {
     class Program
@@ -61,13 +63,13 @@ namespace alga_rogue
                 Console.WriteLine("Press any key to go continue...");
                 Console.ReadKey();
 
-                var width  = AskForNumber("Please insert the dungeon width");
-                var height = AskForNumber("Please insert the dungeon height");
-                var xStart = AskForNumber("Please insert the 'x' position of the Start", min: 0, max: width);
-                var yStart = AskForNumber("Please insert the 'y' position of the Start", min: 0, max: height);
+                var width = 10;//AskForNumber("Please insert the dungeon width");
+                var height = 10;// AskForNumber("Please insert the dungeon height");
+                var xStart = 3;// AskForNumber("Please insert the 'x' position of the Start", min: 0, max: width);
+                var yStart = 3;//AskForNumber("Please insert the 'y' position of the Start", min: 0, max: height);
 
-                var xExit  = AskForNumber("Please insert the 'x' position of the Exit", min: 0, max: width);
-                var yExit  = AskForNumber("Please insert the 'y' position of the Exit", min: 0, max: height);
+                var xExit  = 8;//AskForNumber("Please insert the 'x' position of the Exit", min: 0, max: width);
+                var yExit  = 8;//AskForNumber("Please insert the 'y' position of the Exit", min: 0, max: height);
 
                 Console.WriteLine();
 
@@ -76,6 +78,7 @@ namespace alga_rogue
 
                 dungeon.SetPlayer();
                 dungeon.CheckVisibility();
+                dungeon.CheatMode();
 
                 while (true)
                 {
@@ -99,6 +102,11 @@ namespace alga_rogue
                     {
                         break;
                     }
+
+                    Console.WriteLine("Press any key to go continue...");
+                    Console.ReadKey();
+
+                    Console.Clear();
 
                 }
 
