@@ -58,7 +58,7 @@ namespace alga_rogue
                         Console.Write("~");
                     }
 
-                    if (current?.Visited == true)
+                    if (current?.WasVisitedForSearch == true)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
                     }

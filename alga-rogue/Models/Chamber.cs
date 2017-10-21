@@ -9,13 +9,15 @@ namespace alga_rogue.Models
 {
     class Chamber
     {
+        public Guid Id { get; } = Guid.NewGuid();
+
         readonly Dictionary<Direction, Chamber> chamberDictionary;
 
         // Just for testing the dungeon
         public int XPos { get; }
         public int YPos { get; }
 
-        public bool Visited { get; set; }
+        public bool WasVisitedForSearch { get; set; }
 
         public Chamber Up
         {
@@ -52,7 +54,6 @@ namespace alga_rogue.Models
         public bool IsStart { get; set; }
         public bool IsExit { get; set; }
 
-
         public Chamber(int xPos, int yPos)
         {
             XPos = xPos;
@@ -87,6 +88,23 @@ namespace alga_rogue.Models
                 return 'E';
 
             return Convert.ToChar(Enemy.Level.ToString());
+        }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            if(obj is Chamber other)
+            {
+                return other.Id.Equals(Id);
+            }
+
+            return false;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

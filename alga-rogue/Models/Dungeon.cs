@@ -144,8 +144,8 @@ namespace alga_rogue.Models
                     this.CheckVisibility();
                     break;
                 case "Talisman":
-                    int aantalKamers = this.Talisman();
-                    Console.WriteLine($"{Environment.NewLine}De talisman licht op en fluistert dat de trap omhoog {aantalKamers} kamers ver weg is");
+                    var talisman = Talisman();
+                    Console.WriteLine($"{Environment.NewLine}De talisman licht op en fluistert dat de trap omhoog {talisman.stepsFrom} kamers ver weg is. Berekend in {talisman.itterations} stappen");
                     break;
                 case "Handgranaat":
                     this.Handgranaat();
@@ -175,7 +175,7 @@ namespace alga_rogue.Models
             while (q.Count > 0)
             {
                 Chamber current = q.Dequeue();
-                current.Visited = true;
+                current.WasVisitedForSearch = true;
 
                 if (current == this.Exit)
                 {
@@ -185,7 +185,7 @@ namespace alga_rogue.Models
 
                 if (current.Left != null
                     && current.LeftPassable
-                    && !current.Left.Visited
+                    && !current.Left.WasVisitedForSearch
                     && current.Left.Enemy.Level < current.Down.Enemy.Level
                     && current.Left.Enemy.Level < current.Up.Enemy.Level
                     && current.Left.Enemy.Level < current.Right.Enemy.Level)
@@ -196,7 +196,7 @@ namespace alga_rogue.Models
 
                 if (current.Right != null
                     && current.RightPassable
-                    && !current.Right.Visited
+                    && !current.Right.WasVisitedForSearch
                     && current.Right.Enemy.Level < current.Down.Enemy.Level
                     && current.Right.Enemy.Level < current.Up.Enemy.Level
                     && current.Right.Enemy.Level < current.Left.Enemy.Level)
@@ -207,7 +207,7 @@ namespace alga_rogue.Models
 
                 if (current.Up != null
                     && current.UpPassable
-                    && !current.Up.Visited
+                    && !current.Up.WasVisitedForSearch
                     && current.Up.Enemy.Level < current.Down.Enemy.Level
                     && current.Up.Enemy.Level < current.Right.Enemy.Level
                     && current.Up.Enemy.Level < current.Left.Enemy.Level)
@@ -218,7 +218,7 @@ namespace alga_rogue.Models
 
                 if (current.Down != null
                     && current.DownPassable
-                    && !current.Down.Visited
+                    && !current.Down.WasVisitedForSearch
                     && current.Down.Enemy.Level < current.Up.Enemy.Level
                     && current.Down.Enemy.Level < current.Right.Enemy.Level
                     && current.Down.Enemy.Level < current.Left.Enemy.Level)
@@ -226,16 +226,14 @@ namespace alga_rogue.Models
                     MST[current.Down] = current;
                     q.Enqueue(current.Down);
                 }
-
             }
-
         }
 
-        public int Talisman()
+        public (int stepsFrom, int itterations) Talisman()
         {
-            int steps = 0;
+            int itterations = 0;
 
-            //NotVisited();
+            NotVisited();
 
             var visitedInSearch = new List<Chamber>();
 
@@ -244,58 +242,63 @@ namespace alga_rogue.Models
             int stepsFrom       = 0;
 
             queue.Enqueue(Player.Position);
+            SetVisitedInSearch(Player.Position);
 
             while (queue.Count > 0)
             {
-                steps++;
+                itterations++;
                 var currentChamber = queue.Dequeue();
-                SetVisitedInSearch(currentChamber);
 
-                if (currentChamber == this.Exit)
+                if (currentChamber == Exit)
                 {
                     Chamber stepCounter = currentChamber;
-                    while (stepCounter != this.Player.Position)
+                    while (stepCounter != Player.Position)
                     {
                         stepCounter = whoVisitedWho[stepCounter];
                         stepsFrom++;
                     }
 
-                    return stepsFrom;
+                    return (stepsFrom, itterations);
                 }
 
                 if (currentChamber.Left != null && currentChamber.LeftPassable && WasNotVisitedInSearch(currentChamber.Left))
                 {
                     whoVisitedWho[currentChamber.Left] = currentChamber;
                     queue.Enqueue(currentChamber.Left);
+
+                    SetVisitedInSearch(currentChamber.Left);
                 }
 
                 if (currentChamber.Right != null && currentChamber.RightPassable && WasNotVisitedInSearch(currentChamber.Right))
                 {
                     whoVisitedWho[currentChamber.Right] = currentChamber;
                     queue.Enqueue(currentChamber.Right);
+
+                    SetVisitedInSearch(currentChamber.Right);
                 }
 
                 if (currentChamber.Up != null && currentChamber.UpPassable && WasNotVisitedInSearch(currentChamber.Up))
                 {
                     whoVisitedWho[currentChamber.Up] = currentChamber;
                     queue.Enqueue(currentChamber.Up);
+
+                    SetVisitedInSearch(currentChamber.Up);
                 }
 
                 if (currentChamber.Down != null && currentChamber.DownPassable && WasNotVisitedInSearch(currentChamber.Down))
                 {
                     whoVisitedWho[currentChamber.Down] = currentChamber;
                     queue.Enqueue(currentChamber.Down);
-                }
 
+                    SetVisitedInSearch(currentChamber.Down);
+                }
             }
 
-            queue.Clear();
-            whoVisitedWho.Clear();
-
-            return 0;
+            return (0, itterations);
 
             void SetVisitedInSearch(Chamber chamber)
             {
+                chamber.WasVisitedForSearch = true;
                 visitedInSearch.Add(chamber);
             }
 
@@ -329,7 +332,7 @@ namespace alga_rogue.Models
 
         public void NotVisited()
         {
-            ForEach(chamber => chamber.Visited = false);
+            ForEach(chamber => chamber.WasVisitedForSearch = false);
         }
 
         void ForEach(Action<Chamber> hallo)
