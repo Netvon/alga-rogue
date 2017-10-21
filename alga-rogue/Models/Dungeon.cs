@@ -144,8 +144,8 @@ namespace alga_rogue.Models
                     this.CheckVisibility();
                     break;
                 case "Talisman":
-                    int aantalKamers = this.Talisman();
-                    Console.WriteLine($"{Environment.NewLine}De talisman licht op en fluistert dat de trap omhoog {aantalKamers} kamers ver weg is");
+                    var talisman = Talisman();
+                    Console.WriteLine($"{Environment.NewLine}De talisman licht op en fluistert dat de trap omhoog {talisman.stepsFrom} kamers ver weg is. Berekend in {talisman.itterations} stappen");
                     break;
                 case "Handgranaat":
                     this.Handgranaat();
@@ -175,7 +175,7 @@ namespace alga_rogue.Models
             while (q.Count > 0)
             {
                 Chamber current = q.Dequeue();
-                current.Visited = true;
+                current.WasVisitedForSearch = true;
 
                 if (current == this.Exit)
                 {
@@ -185,7 +185,7 @@ namespace alga_rogue.Models
 
                 if (current.Left != null
                     && current.LeftPassable
-                    && !current.Left.Visited
+                    && !current.Left.WasVisitedForSearch
                     && current.Left.Enemy.Level < current.Down.Enemy.Level
                     && current.Left.Enemy.Level < current.Up.Enemy.Level
                     && current.Left.Enemy.Level < current.Right.Enemy.Level)
@@ -196,7 +196,7 @@ namespace alga_rogue.Models
 
                 if (current.Right != null
                     && current.RightPassable
-                    && !current.Right.Visited
+                    && !current.Right.WasVisitedForSearch
                     && current.Right.Enemy.Level < current.Down.Enemy.Level
                     && current.Right.Enemy.Level < current.Up.Enemy.Level
                     && current.Right.Enemy.Level < current.Left.Enemy.Level)
@@ -207,7 +207,7 @@ namespace alga_rogue.Models
 
                 if (current.Up != null
                     && current.UpPassable
-                    && !current.Up.Visited
+                    && !current.Up.WasVisitedForSearch
                     && current.Up.Enemy.Level < current.Down.Enemy.Level
                     && current.Up.Enemy.Level < current.Right.Enemy.Level
                     && current.Up.Enemy.Level < current.Left.Enemy.Level)
@@ -218,7 +218,7 @@ namespace alga_rogue.Models
 
                 if (current.Down != null
                     && current.DownPassable
-                    && !current.Down.Visited
+                    && !current.Down.WasVisitedForSearch
                     && current.Down.Enemy.Level < current.Up.Enemy.Level
                     && current.Down.Enemy.Level < current.Right.Enemy.Level
                     && current.Down.Enemy.Level < current.Left.Enemy.Level)
@@ -226,65 +226,86 @@ namespace alga_rogue.Models
                     MST[current.Down] = current;
                     q.Enqueue(current.Down);
                 }
-
             }
-
         }
 
-        public int Talisman()
+        public (int stepsFrom, int itterations) Talisman()
         {
-            this.NotVisited();
+            int itterations = 0;
 
-            Queue<Chamber> q = new Queue<Chamber>();
-            Dictionary<Chamber, Chamber> whoVisitedWho = new Dictionary<Chamber, Chamber>();
-            int stepsFrom = 0;
+            NotVisited();
 
-            q.Enqueue(this.Player.Position);
-            while (q.Count > 0)
+            var visitedInSearch = new List<Chamber>();
+
+            var queue           = new Queue<Chamber>();
+            var whoVisitedWho   = new Dictionary<Chamber, Chamber>();
+            int stepsFrom       = 0;
+
+            queue.Enqueue(Player.Position);
+            SetVisitedInSearch(Player.Position);
+
+            while (queue.Count > 0)
             {
-                Chamber current = q.Dequeue();
-                current.Visited = true;
+                itterations++;
+                var currentChamber = queue.Dequeue();
 
-
-                if (current == this.Exit)
+                if (currentChamber == Exit)
                 {
-                    Chamber stepCounter = current;
-                    while (stepCounter != this.Player.Position)
+                    Chamber stepCounter = currentChamber;
+                    while (stepCounter != Player.Position)
                     {
                         stepCounter = whoVisitedWho[stepCounter];
                         stepsFrom++;
                     }
 
-                    return stepsFrom;
+                    return (stepsFrom, itterations);
                 }
 
-                if (current.Left != null && current.LeftPassable != false && current.Left.Visited != true)
+                if (currentChamber.Left != null && currentChamber.LeftPassable && WasNotVisitedInSearch(currentChamber.Left))
                 {
-                    whoVisitedWho[current.Left] = current;
-                    q.Enqueue(current.Left);
+                    whoVisitedWho[currentChamber.Left] = currentChamber;
+                    queue.Enqueue(currentChamber.Left);
+
+                    SetVisitedInSearch(currentChamber.Left);
                 }
 
-                if (current.Right != null && current.RightPassable != false && current.Right.Visited != true)
+                if (currentChamber.Right != null && currentChamber.RightPassable && WasNotVisitedInSearch(currentChamber.Right))
                 {
-                    whoVisitedWho[current.Right] = current;
-                    q.Enqueue(current.Right);
+                    whoVisitedWho[currentChamber.Right] = currentChamber;
+                    queue.Enqueue(currentChamber.Right);
+
+                    SetVisitedInSearch(currentChamber.Right);
                 }
 
-                if (current.Up != null && current.UpPassable != false && current.Up.Visited != true)
+                if (currentChamber.Up != null && currentChamber.UpPassable && WasNotVisitedInSearch(currentChamber.Up))
                 {
-                    whoVisitedWho[current.Up] = current;
-                    q.Enqueue(current.Up);
+                    whoVisitedWho[currentChamber.Up] = currentChamber;
+                    queue.Enqueue(currentChamber.Up);
+
+                    SetVisitedInSearch(currentChamber.Up);
                 }
 
-                if (current.Down != null && current.DownPassable != false && current.Down.Visited != true)
+                if (currentChamber.Down != null && currentChamber.DownPassable && WasNotVisitedInSearch(currentChamber.Down))
                 {
-                    whoVisitedWho[current.Down] = current;
-                    q.Enqueue(current.Down);
+                    whoVisitedWho[currentChamber.Down] = currentChamber;
+                    queue.Enqueue(currentChamber.Down);
+
+                    SetVisitedInSearch(currentChamber.Down);
                 }
-               
             }
 
-            return 0;
+            return (0, itterations);
+
+            void SetVisitedInSearch(Chamber chamber)
+            {
+                chamber.WasVisitedForSearch = true;
+                visitedInSearch.Add(chamber);
+            }
+
+            bool WasNotVisitedInSearch(Chamber chamber)
+            {
+                return !visitedInSearch.Contains(chamber);
+            }
         }
 
         public void CheatMode()
@@ -308,9 +329,10 @@ namespace alga_rogue.Models
                 current = startOfLine;
             }
         }
+
         public void NotVisited()
         {
-            ForEach(chamber => chamber.Visited = false);
+            ForEach(chamber => chamber.WasVisitedForSearch = false);
         }
 
         void ForEach(Action<Chamber> hallo)
