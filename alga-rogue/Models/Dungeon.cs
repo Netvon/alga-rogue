@@ -153,7 +153,7 @@ namespace alga_rogue.Models
                     Console.WriteLine($"{Environment.NewLine}De kerker schudt op zijn grondvesten, alle tegenstanders in de kamer zijn verslagen! Een donderend geluid maakt duidelijk dat gedeeltes van de kerker zijn ingestort...");
                     break;
                 case "Kompas":
-
+                    Dijkstra();
                     break;
                 case "Cheat":
                     this.CheatMode();
@@ -165,7 +165,98 @@ namespace alga_rogue.Models
             }
         }
 
-        
+        public void Dijkstra()
+        {
+            NotVisited();
+
+            var verticies = new Dictionary<Chamber, Dictionary<Chamber, int>>();
+
+            ForEach(chamber =>
+            {
+                var inner = new Dictionary<Chamber, int>();
+
+                var up = chamber[Direction.Up];
+                var down = chamber[Direction.Down];
+                var left = chamber[Direction.Left];
+                var right = chamber[Direction.Right];
+
+                if(up != null && chamber.UpPassable)
+                    inner.Add(up, (int)up.Enemy.Level);
+
+                if (down != null && chamber.DownPassable)
+                    inner.Add(down, (int)down.Enemy.Level);
+
+                if (left != null && chamber.LeftPassable)
+                    inner.Add(left, (int)left.Enemy.Level);
+
+                if (right != null && chamber.RightPassable)
+                    inner.Add(right, (int)right.Enemy.Level);
+
+                verticies.Add(chamber, inner);
+            });
+
+            var start = Player.Position;
+            var finish = Exit;
+
+            var previous = new Dictionary<Chamber, Chamber>();
+            var distances = new Dictionary<Chamber, int>();
+            var nodes = new List<Chamber>();
+
+            List<Chamber> path = null;
+
+            foreach (var vertex in verticies)
+            {
+                if (vertex.Key == start)
+                {
+                    distances[vertex.Key] = 0;
+                } else
+                {
+                    distances[vertex.Key] = int.MaxValue;
+                }
+
+                nodes.Add(vertex.Key);
+            }
+
+            while(nodes.Count != 0)
+            {
+                nodes.Sort((x, y) => distances[x] - distances[y]);
+
+                var smallest = nodes[0];
+                nodes.Remove(smallest);
+
+                if(smallest == finish)
+                {
+                    path = new List<Chamber>();
+                    while (previous.ContainsKey(smallest))
+                    {
+                        path.Add(smallest);
+                        smallest = previous[smallest];
+                    }
+
+                    break;
+                }
+
+                if(distances[smallest] == int.MaxValue)
+                    break;
+
+                foreach (var neighbor in verticies[smallest])
+                {
+                    var alt = distances[smallest] + neighbor.Value;
+
+                    if (alt < distances[neighbor.Key])
+                    {
+                        distances[neighbor.Key] = alt;
+                        previous[neighbor.Key] = smallest;
+                    }
+                }
+            }
+
+            foreach (var node in path)
+            {
+                node.WasVisitedForSearch = true;
+            }
+        }
+
         public void Handgranaat()
         {
             // reset all "Visited" values
@@ -281,6 +372,9 @@ namespace alga_rogue.Models
                         return;
 
                     var randomDirection = (Direction)random.Next(0, 4);
+
+                    while (chamber[randomDirection] == null)
+                        randomDirection = (Direction)random.Next(0, 4);
 
                     if (!ExistsInMST(chamber))
                     {

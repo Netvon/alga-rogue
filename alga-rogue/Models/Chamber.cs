@@ -140,6 +140,9 @@ namespace alga_rogue.Models
         // override object.Equals
         public override bool Equals(object obj)
         {
+            if (obj == null)
+                return false;
+
             if(obj is Chamber other)
             {
                 return other.Id.Equals(Id);
