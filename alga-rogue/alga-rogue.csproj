@@ -44,6 +44,9 @@
   <ItemGroup>
     <Compile Include="DungeonBuilder.cs" />
     <Compile Include="DungeonDrawer.cs" />
+    <Compile Include="Input\Command.cs" />
+    <Compile Include="Input\CommandList.cs" />
+    <Compile Include="Input\Question.cs" />
     <Compile Include="Models\Chamber.cs" />
     <Compile Include="Models\Dungeon.cs" />
     <Compile Include="Models\Enemy.cs" />

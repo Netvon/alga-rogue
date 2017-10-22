@@ -6,53 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 using alga_rogue.Util;
+using alga_rogue.Input;
 
 namespace alga_rogue
 {
     class Program
     {
-        static int AskForNumber(string question, int min = int.MinValue, int max = int.MaxValue)
-        {
-            var result = 0;
-            var isValid = false;
-
-            while (!isValid)
-            {
-                Ask();
-                isValid = int.TryParse(Console.ReadLine(), out result);
-
-                if (result < min || result > max)
-                    isValid = false;
-
-                if (!isValid)
-                    NotifyOfError();
-            }
-
-            return result;
-
-            void Ask()
-            {
-                Console.BackgroundColor = ConsoleColor.Cyan;
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.WriteLine($"\n   {question}   ");
-                Console.ResetColor();
-
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write("=> ");
-                Console.ResetColor();
-            }
-
-            void NotifyOfError()
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("~ ~ ~ Please enter a valid number ~ ~ ~");
-                Console.ResetColor();
-            }
-        }
-
         static void Main(string[] args)
         {
-            var dungeonBuilder = new DungeonBuilder();
+            Console.Title = "ALGA Rogue";
+
+            var cmdList = new CommandList();
+
             var dungeonDrawer = new DungeonDrawer();
             var playing = true;
 
@@ -63,18 +28,7 @@ namespace alga_rogue
                 Console.WriteLine("Press any key to go continue...");
                 Console.ReadKey();
 
-                var width = 10;//AskForNumber("Please insert the dungeon width");
-                var height = 10;// AskForNumber("Please insert the dungeon height");
-                var xStart = 3;// AskForNumber("Please insert the 'x' position of the Start", min: 0, max: width);
-                var yStart = 3;//AskForNumber("Please insert the 'y' position of the Start", min: 0, max: height);
-
-                var xExit  = 8;//AskForNumber("Please insert the 'x' position of the Exit", min: 0, max: width);
-                var yExit  = 8;//AskForNumber("Please insert the 'y' position of the Exit", min: 0, max: height);
-
-                Console.WriteLine();
-
-                dungeonBuilder.PrepareDungeon(xStart, yStart, xExit, yExit, width, height);
-                var dungeon = dungeonBuilder.CreateDungeon();
+                Dungeon dungeon = BuildDungeon();
 
                 dungeon.SetPlayer();
                 dungeon.CheckVisibility();
@@ -83,36 +37,21 @@ namespace alga_rogue
                 while (true)
                 {
                     dungeonDrawer.Draw(dungeon);
+#if DEBUG
+                    DrawDebug(dungeon);
+#endif
 
-                    Console.WriteLine($"UpPassible: {dungeon.Player.Position.UpPassable}");
-                    Console.WriteLine($"DownPassible: {dungeon.Player.Position.DownPassable}");
-                    Console.WriteLine($"LeftPassible: {dungeon.Player.Position.LeftPassable}");
-                    Console.WriteLine($"RightPassible: {dungeon.Player.Position.RightPassable}");
-
-                    Console.WriteLine("Commands: ");
-                    Console.WriteLine("MoveUp");
-                    Console.WriteLine("MoveDown");
-                    Console.WriteLine("MoveRight");
-                    Console.WriteLine("MoveLeft");
-                    Console.WriteLine("Talisman");
-                    Console.WriteLine("Handgranaat");
-                    Console.WriteLine("Kompas");
-                    Console.WriteLine();
-                    Console.WriteLine("Choose one of the commands.");
-                    string command = Console.ReadLine();
-
-                    dungeon.DoCommand(command);
+                    cmdList.AskForCommand(dungeon);
 
                     if (dungeon.Player.Position == dungeon.Exit)
                     {
                         break;
                     }
 
-                    Console.WriteLine("Press any key to go continue...");
+                    Console.WriteLine("\nPress any key to go continue...");
                     Console.ReadKey();
 
                     Console.Clear();
-
                 }
 
                 Console.WriteLine();
@@ -123,7 +62,45 @@ namespace alga_rogue
                 if (yorN.Equals("N"))
                     break;
             }
-            
+        }
+
+        private static Dungeon BuildDungeon()
+        {
+            var dungeonBuilder = new DungeonBuilder();
+#if DEBUG
+            var width = 10;
+            var height = 10;
+            var xStart = 3;
+            var yStart = 3;
+
+            var xExit = 8;
+            var yExit = 8;
+#else
+            var width = Question.AskForNumber("Please insert the dungeon width");
+            var height = Question.AskForNumber("Please insert the dungeon height");
+            var xStart = Question.AskForNumber("Please insert the 'x' position of the Start", min: 0, max: width);
+            var yStart = Question.AskForNumber("Please insert the 'y' position of the Start", min: 0, max: height);
+
+            var xExit = Question.AskForNumber("Please insert the 'x' position of the Exit", min: 0, max: width);
+            var yExit = Question.AskForNumber("Please insert the 'y' position of the Exit", min: 0, max: height);
+#endif
+
+            Console.Clear();
+
+            dungeonBuilder.PrepareDungeon(xStart, yStart, xExit, yExit, width, height);
+            return dungeonBuilder.CreateDungeon();
+        }
+
+        private static void DrawDebug(Dungeon dungeon)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.WriteLine("Debug Info:");
+            Console.WriteLine($"\tUpPassible:\t{dungeon.Player.Position.UpPassable}");
+            Console.WriteLine($"\tDownPassible:\t{dungeon.Player.Position.DownPassable}");
+            Console.WriteLine($"\tLeftPassible:\t{dungeon.Player.Position.LeftPassable}");
+            Console.WriteLine($"\tRightPassible:\t{dungeon.Player.Position.RightPassable}");
+            Console.WriteLine();
+            Console.ResetColor();
         }
     }
 }
