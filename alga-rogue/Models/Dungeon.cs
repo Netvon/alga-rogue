@@ -165,49 +165,49 @@ namespace alga_rogue.Models
             }
         }
 
+        
         public void Handgranaat()
         {
+            // reset all "Visited" values
+            // this is used for debugging purposes
             NotVisited();
 
-            Func<Chamber, (uint? weigth, bool passable, Chamber chamber, Direction direction)[]> getDirectionInfo = (Chamber c) => new[] {
-                c.GetDirectionInfo(Direction.Up),
-                c.GetDirectionInfo(Direction.Down),
-                c.GetDirectionInfo(Direction.Left),
-                c.GetDirectionInfo(Direction.Right),
-            };
+            var startLookup = GetDirectionInfo(Player.Position);
 
-            var startLookup = getDirectionInfo(Exit);
-
+            //Contains all the Chambers previously visited in the Search
             var previouslyVisited = new HashSet<Chamber>();
-            var connections = new Dictionary<Chamber, HashSet<(uint? weigth, bool passable, Chamber chamber, Direction direction)>>();
+
+            // all the connections previously made
+            // since one chamber can have more than one connections the values of this Dictionary are stored as a HashSet
+            // the HashSet contains a Tuple for convenience.
+            var connections = new Dictionary<Chamber, HashSet<(uint? weigth, Chamber chamber, Direction direction)>>();
 
             while (true)
             {
-
-                var prev = previouslyVisited.Select(c => getDirectionInfo(c))
-                          .SelectMany(x => x)
-                          .Where(x => x.chamber != null)
+                var prev = previouslyVisited.Select(c => GetDirectionInfo(c))               // get all the DirectionIndo
+                          .SelectMany(x => x)                                               // flatten the List of Lists to one big list
+                          .Where(x => x.chamber != null)                                    // remove Directions that have no Chamber
                           .Where(x => !previouslyVisited.Contains(x.chamber[x.direction]));
 
-                var h = prev.Union(startLookup);
+                // create the list of possible connections by combined the prev and startLookup lists
+                var possibleConnections = prev.Union(startLookup);
 
-                var h2 = h.Where(to => to.chamber != null)
-                          .Where(to => !previouslyVisited.Contains(to.chamber))
-                          .OrderBy(x => x.weigth);
+                // get all the connections that are possible to make
+                // order the list by the weight of the connection (the level of the room)
+                // the list will be ordered in ASC (1 -> 9)
+                var possibleConnectionsOrdered = possibleConnections
+                          .Where(to => to.chamber != null)                          // remove Directions that have no Chamber
+                          .Where(to => !previouslyVisited.Contains(to.chamber))     // remove connections that have already been made
+                          .OrderBy(x => x.weigth);                                  // order the list by weight
 
-                if (h2.Any())
+                // are there any connections possible?
+                if (possibleConnectionsOrdered.Any())
                 {
-                    var to = h2.First();
+                    // take the cheapest connection
+                    var to = possibleConnectionsOrdered.First();
                     var from = to.chamber[to.direction.Opposite()];
 
-                    if(connections.ContainsKey(from))
-                    {
-                        connections[from].Add(to);
-                    } else
-                    {
-                        var toList = new HashSet<(uint? weigth, bool passable, Chamber chamber, Direction direction)>() { to };
-                        connections.Add(from, toList);
-                    }
+                    CreateOrUpdateConnections(from, to);
 
                     previouslyVisited.Add(from);
                     previouslyVisited.Add(to.chamber);
@@ -215,33 +215,23 @@ namespace alga_rogue.Models
                     to.chamber.WasVisitedForSearch = true;
                     from.WasVisitedForSearch = true;
 
+                    // have we arrived at the Exit?
+                    //  If so, break the main loop. No need to search any further
                     if (to.chamber == Exit)
                         break;
                 } else
                 {
+                    // it appears there are no more connections possible, stop the loop
                     break;
                 }
-               
             }
 
-            var destoryCount = 0;
+            DestroyHallways();
+            // return; <- this would be the end point of the method
 
-            ForEach(chamber =>
-            {
-                if (destoryCount > 10)
-                    return;
-
-                var randomDirection = (Direction)random.Next(0, 4);
-
-                if(!ExistsInMST(chamber))
-                {
-                    chamber.SetPassable(randomDirection, false);
-                    chamber[randomDirection]?.SetPassable(randomDirection.Opposite(), false);
-
-                    destoryCount++;
-                }
-            });
-
+            // all the inline functions start at this point.
+            // inline Methods are a new C# language feature
+            #region Inline Functions
             bool ExistsInMST(Chamber chamber)
             {
                 if (connections.ContainsKey(chamber))
@@ -256,171 +246,52 @@ namespace alga_rogue.Models
                 return false;
             }
 
-            //var visitedInSearch = new List<Chamber>();
+            (uint? weigth, Chamber chamber, Direction direction)[] GetDirectionInfo(Chamber c)
+            {
+                return new[]
+                {
+                    c.GetDirectionInfo(Direction.Up),
+                    c.GetDirectionInfo(Direction.Down),
+                    c.GetDirectionInfo(Direction.Left),
+                    c.GetDirectionInfo(Direction.Right),
+                };
+            }
 
+            void CreateOrUpdateConnections(Chamber from, (uint? weigth, Chamber chamber, Direction direction) to)
+            {
+                if (connections.ContainsKey(from))
+                {
+                    connections[from].Add(to);
+                }
+                else
+                {
+                    var toList = new HashSet<(uint? weigth, Chamber chamber, Direction direction)>() { to };
+                    connections.Add(from, toList);
+                }
+            }
 
+            void DestroyHallways()
+            {
+                var destoryCount = 0;
+                var amountToDestroy = random.Next(10, 15);
 
+                ForEach(chamber =>
+                {
+                    if (destoryCount >= amountToDestroy)
+                        return;
 
+                    var randomDirection = (Direction)random.Next(0, 4);
 
+                    if (!ExistsInMST(chamber))
+                    {
+                        chamber.SetPassable(randomDirection, false);
+                        chamber[randomDirection]?.SetPassable(randomDirection.Opposite(), false);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-            //var q   = new Queue<Chamber>();
-            //var MST = new Dictionary<Chamber, Chamber>();
-
-            //q.Enqueue(Player.Position);
-            //SetVisitedInSearch(Player.Position);
-
-            //while (q.Count > 0)
-            //{
-            //    Chamber current = q.Dequeue();
-
-            //    if (current == Exit)
-            //    {
-            //        DestroyChambers(MST);
-            //        return;
-            //    }
-
-            //    ProcessChamber(current, Direction.Left);
-            //    ProcessChamber(current, Direction.Right);
-            //    ProcessChamber(current, Direction.Up);
-            //    ProcessChamber(current, Direction.Down);
-
-            //    //var testsLeft = new[] {
-            //    //    current.Left?.Enemy.Level < current.Up?.Enemy.Level,
-            //    //    current.Left?.Enemy.Level < current.Down?.Enemy.Level,
-            //    //    current.Left?.Enemy.Level < current.Right?.Enemy.Level
-            //    //};
-
-            //    //var testsRight = new[] {
-            //    //    current.Right?.Enemy.Level < current.Up?.Enemy.Level,
-            //    //    current.Right?.Enemy.Level < current.Down?.Enemy.Level,
-            //    //    current.Right?.Enemy.Level < current.Left?.Enemy.Level
-            //    //};
-
-            //    //var testsUp = new[] {
-            //    //    current.Up?.Enemy.Level < current.Down?.Enemy.Level,
-            //    //    current.Up?.Enemy.Level < current.Right?.Enemy.Level,
-            //    //    current.Up?.Enemy.Level < current.Left?.Enemy.Level
-            //    //};
-
-            //    //var testsDown = new[] {
-            //    //    current.Down?.Enemy.Level < current.Up?.Enemy.Level,
-            //    //    current.Down?.Enemy.Level < current.Right?.Enemy.Level,
-            //    //    current.Down?.Enemy.Level < current.Left?.Enemy.Level
-            //    //};
-
-            //    //if (current.Left != null
-            //    //    && current.LeftPassable
-            //    //    && WasNotVisitedInSearch(current.Left)
-            //    //    && current.Left.Enemy.Level < current.Down?.Enemy.Level
-            //    //    && current.Left.Enemy.Level < current.Up?.Enemy.Level
-            //    //    && current.Left.Enemy.Level < current.Right?.Enemy.Level)
-            //    //{
-            //    //    MST[current.Left] = current;
-            //    //    q.Enqueue(current.Left);
-
-            //    //    SetVisitedInSearch(current.Left);
-            //    //}
-
-            //    //if (current.Right != null
-            //    //    && current.RightPassable
-            //    //    && WasNotVisitedInSearch(current.Right)
-            //    //    && current.Right.Enemy.Level < current.Down?.Enemy.Level
-            //    //    && current.Right.Enemy.Level < current.Up?.Enemy.Level
-            //    //    && current.Right.Enemy.Level < current.Left?.Enemy.Level)
-            //    //{
-            //    //    MST[current.Right] = current;
-            //    //    q.Enqueue(current.Right);
-
-            //    //    SetVisitedInSearch(current.Right);
-            //    //}
-
-            //    //if (current.Up != null
-            //    //    && current.UpPassable
-            //    //    && WasNotVisitedInSearch(current.Up)
-            //    //    && current.Up.Enemy.Level < current.Down?.Enemy.Level
-            //    //    && current.Up.Enemy.Level < current.Right?.Enemy.Level
-            //    //    && current.Up.Enemy.Level < current.Left?.Enemy.Level)
-            //    //{
-            //    //    MST[current.Up] = current;
-            //    //    q.Enqueue(current.Up);
-
-            //    //    SetVisitedInSearch(current.Up);
-            //    //}
-
-            //    //if (current.Down != null
-            //    //    && current.DownPassable
-            //    //    && WasNotVisitedInSearch(current.Down)
-            //    //    && current.Down.Enemy.Level < current.Up?.Enemy.Level
-            //    //    && current.Down.Enemy.Level < current.Right?.Enemy.Level
-            //    //    && current.Down.Enemy.Level < current.Left?.Enemy.Level)
-            //    //{
-            //    //    MST[current.Down] = current;
-            //    //    q.Enqueue(current.Down);
-
-            //    //    SetVisitedInSearch(current.Down);
-            //    //}
-            //}
-
-            //void ProcessChamber(Chamber chamber, Direction direction)
-            //{
-            //    if (chamber[direction] == null)
-            //        return;
-
-            //    if (!chamber.IsPassable(direction))
-            //        return;
-
-            //    if (!WasNotVisitedInSearch(chamber[direction]))
-            //        return;
-
-            //    var otherDirections = direction.Others();
-            //    var selected = otherDirections
-            //        .Select(dir => new { Chamber = chamber[dir], Level = chamber[dir]?.Enemy.Level })
-            //        .Where(x => x.Chamber != null)
-            //        .OrderBy(x => x.Level)
-            //        .FirstOrDefault();
-
-
-            //    if(selected != null)
-            //    //if (chamber.IsPassable(direction)
-            //    //    && WasNotVisitedInSearch(chamber[direction])
-            //    //    && allDirections)
-            //    {
-            //        MST[chamber[direction]] = selected.Chamber;
-            //        q.Enqueue(chamber[direction]);
-
-            //        SetVisitedInSearch(chamber[direction]);
-            //    }
-            //}
-
-            //void SetVisitedInSearch(Chamber chamber)
-            //{
-            //    chamber.WasVisitedForSearch = true;
-            //    visitedInSearch.Add(chamber);
-            //}
-
-            //bool WasNotVisitedInSearch(Chamber chamber)
-            //{
-            //    return !visitedInSearch.Contains(chamber);
-            //}
+                        destoryCount++;
+                    }
+                });
+            }
+#endregion
         }
 
         public (int stepsFrom, int itterations) Talisman()
@@ -489,7 +360,6 @@ namespace alga_rogue.Models
             }
 
             return (0, itterations);
-            
 
             void SetVisitedInSearch(Chamber chamber)
             {

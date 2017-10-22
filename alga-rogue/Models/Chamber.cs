@@ -85,11 +85,11 @@ namespace alga_rogue.Models
         public uint? UpWeight => Up?.Enemy.Level;
         public uint? DownWeight => Down?.Enemy.Level;
 
-        public (uint? weigth, bool passable, Chamber chamber, Direction direction) GetDirectionInfo(Direction direction)
+        public (uint? weigth, Chamber chamber, Direction direction) GetDirectionInfo(Direction direction)
         {
             return
             (
-                this[direction]?.Enemy.Level, IsPassable(direction), this[direction], direction
+                this[direction]?.Enemy.Level, this[direction], direction
             );
         }
 
