@@ -9,6 +9,7 @@ namespace alga_rogue
 {
     class DungeonDrawer
     {
+ 
         public void Draw(Dungeon dungeon)
         {
             var startOfLine = dungeon.TopLeftChamber;
@@ -16,120 +17,96 @@ namespace alga_rogue
 
             while (startOfLine != null)
             {
-                while (current != null)
-                {
-                    if(current.Left != null)
+                for (int i = 0; i < 3; i++) { 
+                
+                    while (current != null)
                     {
-                        Console.Write(" ");
-                    }
+                        if (i == 0)
+                            drawUpLine(current);
 
-                    if (current.Up?.UpPassable == true)
-                    {
-                        Console.Write("|");
-                    }
-                    else if (current.Up?.UpPassable == false)
-                    {
-                        Console.Write("/");
-                    }
+                        if (i == 1)
+                            drawMiddleLine(current, dungeon);
 
-                    if (current.Right != null)
-                    {
-                        Console.Write(" ");
-                    }
+                        if (i == 2)
+                            drawDownLine(current);
 
-                    if (current.Right == null)
-                    {
-                        current = startOfLine;
-                        break;
+                        current = current.Right;
                     }
-
-                    current = current.Right;
+                    Console.WriteLine();
+                    current = startOfLine;
                 }
-
-                Console.WriteLine();
-
-                while (current != null)
-                {
-                    if(current.Left?.LeftPassable == true)
-                    {
-                        Console.Write("-");
-                    } else if (current.Left?.LeftPassable == false)
-                    {
-                        Console.Write("~");
-                    }
-
-                    if (current?.WasVisitedForSearch == true)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                    }
-
-                    if (current != null && current == dungeon.Player.Position)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                    }
-
-                    Console.Write(current.Print());
-                    Console.ForegroundColor = ConsoleColor.White;
-
-                    if (current.Right?.RightPassable == true)
-                    {
-                        Console.Write("-");
-                    }
-                    else if (current.Right?.RightPassable == false)
-                    {
-                        Console.Write("~");
-                    }
-
-                    if (current.Right == null)
-                    {
-                        current = startOfLine;
-                        break;
-                    }
-
-                    current = current.Right;
-                }
-
-                Console.WriteLine();
-
-                while (current != null)
-                {
-
-                    if (current.Left != null)
-                    {
-                        Console.Write(" ");
-                    }
-
-                    if (current.Down?.DownPassable == true)
-                    {
-                        Console.Write("|");
-                    }
-                    else if (current.Down?.DownPassable == false)
-                    {
-                        Console.Write("/");
-                    }
-
-                    if (current.Right != null)
-                    {
-                        Console.Write(" ");
-                    }
-
-                    if (current.Right == null)
-                    {
-                        current = startOfLine;
-                        break;
-                    }
-
-                    current = current.Right;
-                }
-
-                Console.WriteLine();
-
-                if (startOfLine.Down == null)
-                    break;
 
                 startOfLine = startOfLine.Down;
                 current = startOfLine;
             }
+        }
+
+        public void drawUpLine(Chamber current)
+        {
+            if (current.Up == null)
+                return;
+
+            if (current.Left != null)
+                Console.Write(" ");
+
+            if (current.UpPassable)
+                Console.Write("|");
+
+            if (!current.UpPassable)
+                Console.Write("/");
+
+            if (current.Right != null)
+                Console.Write(" ");
+        }
+
+        public void drawMiddleLine(Chamber current, Dungeon dungeon)
+        {
+            if (current.Left != null)
+            {
+                if (current.LeftPassable)
+                    Console.Write("-");
+                else
+                    Console.Write("~");
+            }
+
+            if (current?.WasVisitedForSearch == true)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+
+            if (current != null && current == dungeon.Player.Position)
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+            }
+
+            Console.Write(current.Print());
+            Console.ForegroundColor = ConsoleColor.White;
+
+            if (current.Right != null)
+            {
+                if (current.RightPassable)
+                    Console.Write("-");
+                else
+                    Console.Write("~");
+            }
+        }
+
+        public void drawDownLine(Chamber current)
+        {
+            if (current.Down == null)
+                return;
+
+            if (current.Left != null)
+                Console.Write(" ");
+
+            if (current.DownPassable)
+                Console.Write("|");
+
+            if (!current.DownPassable)
+                Console.Write("/");
+
+            if (current.Right != null)
+                Console.Write(" ");
         }
     }
 }

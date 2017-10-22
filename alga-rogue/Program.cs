@@ -84,6 +84,8 @@ namespace alga_rogue
                 {
                     dungeonDrawer.Draw(dungeon);
 
+
+                    Console.WriteLine($"Level: {dungeon.Player.Position.Enemy.Level}");
                     Console.WriteLine($"UpPassible: {dungeon.Player.Position.UpPassable}");
                     Console.WriteLine($"DownPassible: {dungeon.Player.Position.DownPassable}");
                     Console.WriteLine($"LeftPassible: {dungeon.Player.Position.LeftPassable}");
