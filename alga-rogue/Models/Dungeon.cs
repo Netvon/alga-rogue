@@ -47,6 +47,14 @@ namespace alga_rogue.Models
 
         public Chamber TopLeftChamber { get; set; }
 
+        public void SetHighLevels(List<Chamber> result)
+        {
+            foreach (var item in result)
+            {
+                item.Enemy.Level = (uint)random.Next(7, 10);
+            }
+        }
+
         public Dungeon(int width, int height)
         {
             this.Width = width;
@@ -76,7 +84,7 @@ namespace alga_rogue.Models
 
                     current = current.Right;
                 }
-                Console.WriteLine();
+                //Console.WriteLine();
 
                 if (startOfLine.Down == null)
                     break;
@@ -106,7 +114,7 @@ namespace alga_rogue.Models
 
                     current = current.Right;
                 }
-                Console.WriteLine();
+                //Console.WriteLine();
 
                 if (startOfLine.Down == null)
                     break;
@@ -165,7 +173,7 @@ namespace alga_rogue.Models
             }
         }
 
-        public void Dijkstra()
+        public List<Chamber> Dijkstra()
         {
             NotVisited();
 
@@ -255,6 +263,8 @@ namespace alga_rogue.Models
             {
                 node.WasVisitedForSearch = true;
             }
+
+            return path;
         }
 
         public void Handgranaat()
@@ -289,6 +299,7 @@ namespace alga_rogue.Models
                 var possibleConnectionsOrdered = possibleConnections
                           .Where(to => to.chamber != null)                          // remove Directions that have no Chamber
                           .Where(to => !previouslyVisited.Contains(to.chamber))     // remove connections that have already been made
+                          .Where(to => to.chamber[to.direction.Opposite()].IsPassable(to.direction))
                           .OrderBy(x => x.weigth);                                  // order the list by weight
 
                 // are there any connections possible?
@@ -371,9 +382,12 @@ namespace alga_rogue.Models
                     if (destoryCount >= amountToDestroy)
                         return;
 
+                    if (random.Next(0, 4) != 2)
+                        return;
+
                     var randomDirection = (Direction)random.Next(0, 4);
 
-                    while (chamber[randomDirection] == null)
+                    while (chamber[randomDirection] == null && !chamber.IsPassable(randomDirection))
                         randomDirection = (Direction)random.Next(0, 4);
 
                     if (!ExistsInMST(chamber))
@@ -384,6 +398,8 @@ namespace alga_rogue.Models
                         destoryCount++;
                     }
                 });
+
+                Console.WriteLine($"Detroyed {destoryCount} hallways");
             }
 #endregion
         }

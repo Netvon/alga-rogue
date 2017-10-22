@@ -23,9 +23,16 @@ namespace alga_rogue.Input
                 new Command("Talisman", Talisman),
                 new Command("Handgranaat", Handgranaat),
                 new Command("Kompas", Kompas),
+                new Command("KompasCheat", KompassCheat, hidden: true),
 
                 new Command("Cheat", CheatMode, hidden: true)
             };
+        }
+
+        void KompassCheat(Dungeon obj)
+        {
+            var result = obj.Dijkstra();
+            obj.SetHighLevels(result);
         }
 
         void CheatMode(Dungeon obj)
@@ -84,7 +91,10 @@ namespace alga_rogue.Input
 
             RunCommand(dungeon, Console.ReadLine());
         }
-
+#if DEBUG
         public List<string> Keys => commands.Select(x => x.Key).ToList();
+#else
+        public List<string> Keys => commands.Where(x => !x.Hidden).Select(x => x.Key).ToList();
+#endif
     }
 }

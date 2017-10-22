@@ -9,7 +9,6 @@ namespace alga_rogue
 {
     class DungeonDrawer
     {
- 
         public void Draw(Dungeon dungeon)
         {
             var startOfLine = dungeon.TopLeftChamber;
@@ -17,18 +16,18 @@ namespace alga_rogue
 
             while (startOfLine != null)
             {
-                for (int i = 0; i < 3; i++) { 
-                
+                for (int i = 0; i < 3; i++)
+                {
                     while (current != null)
                     {
                         if (i == 0)
-                            drawUpLine(current);
+                            DrawUpLine(current);
 
                         if (i == 1)
-                            drawMiddleLine(current, dungeon);
+                            DrawMiddleLine(current, dungeon);
 
                         if (i == 2)
-                            drawDownLine(current);
+                            DrawDownLine(current);
 
                         current = current.Right;
                     }
@@ -41,72 +40,75 @@ namespace alga_rogue
             }
         }
 
-        public void drawUpLine(Chamber current)
+        public void DrawUpLine(Chamber current)
         {
             if (current.Up == null)
                 return;
 
             if (current.Left != null)
-                Console.Write(" ");
+                Console.Write("   ");
 
             if (current.UpPassable)
-                Console.Write("|");
+                Console.Write(" | ");
 
             if (!current.UpPassable)
-                Console.Write("/");
+                Console.Write(" / ");
 
             if (current.Right != null)
-                Console.Write(" ");
+                Console.Write("   ");
         }
 
-        public void drawMiddleLine(Chamber current, Dungeon dungeon)
+        public void DrawMiddleLine(Chamber current, Dungeon dungeon)
         {
             if (current.Left != null)
             {
                 if (current.LeftPassable)
-                    Console.Write("-");
+                    Console.Write("---");
                 else
-                    Console.Write("~");
+                    Console.Write("~~~");
             }
+
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.Gray;
 
             if (current?.WasVisitedForSearch == true)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
+                Console.BackgroundColor = ConsoleColor.Green;
             }
 
             if (current != null && current == dungeon.Player.Position)
             {
-                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.BackgroundColor = ConsoleColor.Blue;
             }
 
-            Console.Write(current.Print());
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($" {current.Print()} ");
+            Console.ResetColor();
 
             if (current.Right != null)
             {
                 if (current.RightPassable)
-                    Console.Write("-");
+                    Console.Write("---");
                 else
-                    Console.Write("~");
+                    Console.Write("~~~");
             }
         }
 
-        public void drawDownLine(Chamber current)
+        public void DrawDownLine(Chamber current)
         {
             if (current.Down == null)
                 return;
 
             if (current.Left != null)
-                Console.Write(" ");
+                Console.Write("   ");
 
             if (current.DownPassable)
-                Console.Write("|");
+                Console.Write(" | ");
 
             if (!current.DownPassable)
-                Console.Write("/");
+                Console.Write(" / ");
 
             if (current.Right != null)
-                Console.Write(" ");
+                Console.Write("   ");
         }
     }
 }

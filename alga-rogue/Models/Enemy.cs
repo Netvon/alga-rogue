@@ -8,7 +8,7 @@ namespace alga_rogue.Models
 
         public void GenerateLevel(Random random)
         {
-            Level = (uint) random.Next(1, 9);
+            Level = (uint) random.Next(1, 10);
         }
     }
 }
