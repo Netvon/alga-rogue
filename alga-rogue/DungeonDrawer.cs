@@ -40,7 +40,7 @@ namespace alga_rogue
             }
         }
 
-        public void DrawUpLine(Chamber current)
+        void DrawUpLine(Chamber current)
         {
             if (current.Up == null)
                 return;
@@ -58,7 +58,7 @@ namespace alga_rogue
                 Console.Write("   ");
         }
 
-        public void DrawMiddleLine(Chamber current, Dungeon dungeon)
+        void DrawMiddleLine(Chamber current, Dungeon dungeon)
         {
             if (current.Left != null)
             {
@@ -93,7 +93,7 @@ namespace alga_rogue
             }
         }
 
-        public void DrawDownLine(Chamber current)
+        void DrawDownLine(Chamber current)
         {
             if (current.Down == null)
                 return;

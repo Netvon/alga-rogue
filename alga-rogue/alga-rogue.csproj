@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alg\Dijkstra.cs" />
     <Compile Include="DungeonBuilder.cs" />
     <Compile Include="DungeonDrawer.cs" />
     <Compile Include="Input\Command.cs" />

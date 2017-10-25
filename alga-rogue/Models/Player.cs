@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace alga_rogue.Models
 {
-    class Player
+    public class Player
     {
         public Chamber Position { get; set; }
 
@@ -34,7 +34,7 @@ namespace alga_rogue.Models
         }
     }
 
-    enum Direction
+    public enum Direction
     {
         [Opposite(Down)]
         Up,

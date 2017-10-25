@@ -4,10 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace alga_rogue.Models
 {
-    class Chamber
+    public class Hallway
+    {
+        public Chamber From { get; set; }
+        public Chamber To { get; set; }
+        public uint Weight { get; set; }
+        public bool Passable { get; set; }
+        public Direction Direction { get; set; }
+    }
+
+    public class Chamber : IEnumerable<Hallway>
     {
         public Guid Id { get; } = Guid.NewGuid();
 
@@ -79,11 +89,6 @@ namespace alga_rogue.Models
             get => chamberPassible[Direction.Right];
             set => chamberPassible[Direction.Right] = value;
         }
-
-        public uint? LeftWeight => Left?.Enemy.Level;
-        public uint? RightWeight => Right?.Enemy.Level;
-        public uint? UpWeight => Up?.Enemy.Level;
-        public uint? DownWeight => Down?.Enemy.Level;
 
         public (uint? weigth, Chamber chamber, Direction direction) GetDirectionInfo(Direction direction)
         {
@@ -160,6 +165,25 @@ namespace alga_rogue.Models
         public override string ToString()
         {
             return Id.ToString();
+        }
+
+        public IEnumerator<Hallway> GetEnumerator()
+        {
+            return chamberDictionary
+                .Where(x => x.Value != null)
+                .Select(x => new Hallway()
+                {
+                    From = this,
+                    To = x.Value,
+                    Direction = x.Key,
+                    Weight = x.Value.Enemy.Level,
+                    Passable = chamberPassible[x.Key]
+                }).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

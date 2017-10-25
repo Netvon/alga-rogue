@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using alga_rogue.Alg;
 
 namespace alga_rogue.Input
 {
@@ -63,7 +64,7 @@ namespace alga_rogue.Input
 
         void Kompas(Dungeon obj)
         {
-            obj.Dijkstra();
+            obj.ShortestPath(obj.Start, obj.Exit);
         }
 
         void Handgranaat(Dungeon obj)

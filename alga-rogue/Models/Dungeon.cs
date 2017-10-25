@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace alga_rogue.Models
 {
-    class Dungeon
+    public class Dungeon : IEnumerable<Chamber>
     {
         Chamber start, exit;
         Random random;
@@ -510,7 +511,7 @@ namespace alga_rogue.Models
             ForEach(chamber => chamber.WasVisitedForSearch = false);
         }
 
-        void ForEach(Action<Chamber> hallo)
+        public void ForEach(Action<Chamber> hallo)
         {
             var startOfLine = TopLeftChamber;
             var current = TopLeftChamber;
@@ -580,6 +581,33 @@ namespace alga_rogue.Models
 
                 break;
             }
+        }
+
+        public IEnumerator<Chamber> GetEnumerator()
+        {
+            var startOfLine = TopLeftChamber;
+            var current = TopLeftChamber;
+
+            while (startOfLine != null)
+            {
+                while (current != null)
+                {
+                    yield return current;
+
+                    current = current.Right;
+                }
+
+                if (startOfLine.Down == null)
+                    break;
+
+                startOfLine = startOfLine.Down;
+                current = startOfLine;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
